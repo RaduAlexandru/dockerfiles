@@ -10,6 +10,21 @@ ARG shell
 # Basic Utilities
 RUN apt-get -y update && apt-get install -y zsh screen tree sudo ssh synaptic
 
+
+#Needed for the command add-apt-repository
+RUN apt-get -y install software-properties-common python-software-properties
+
+#Tmux version 2.3 for ubuntu 14.04
+RUN add-apt-repository -y ppa:pi-rho/dev
+RUN apt-get -y update
+RUN apt-get install -y tmux-next
+
+#Others
+RUN apt-get install -y  git checkinstall cmake vim
+
+
+
+
 # Latest X11 / mesa GL
 RUN apt-get install -y\
   xserver-xorg-dev-lts-wily\
@@ -36,6 +51,30 @@ RUN apt-get install -y ros-indigo-desktop-full
 RUN apt-get install -y x11-apps python-pip build-essential
 RUN pip install catkin_tools
 
+
+#pcl, openc and eigen3
+RUN add-apt-repository -y ppa:v-launchpad-jochen-sprickerhof-de/pcl
+RUN apt-get -y update
+RUN apt-get -y install libpcl-all libopencv-dev libeigen3-dev
+#RUN apt-get -y upgrade 
+
+
+#librealsense prerequisites
+RUN apt-get install -y libusb-1.0-0-dev pkg-config
+RUN sudo apt-get update && sudo apt-get install -y build-essential cmake git xorg-dev libglu1-mesa-dev && git clone https://github.com/glfw/glfw.git /tmp/glfw && cd /tmp/glfw && git checkout latest && cmake . -DBUILD_SHARED_LIBS=ON && make && sudo make install && sudo ldconfig && rm -rf /tmp/glfw
+
+
+#RUN cp /media/alex/Data/Master/SHK/shk_ws/src/realsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
+
+COPY resources /resources/
+RUN cp /resources/99-realsense-libusb.rules /etc/udev/rules.d/
+
+RUN apt-get install -y udev
+#RUN udevadm control --reload-rules && udevadm trigger
+#RUN /media/alex/Data/Master/SHK/shk_ws/src/realsense/scripts/patch-uvcvideo-16.04.simple_unsafe.sh
+RUN sudo apt-get install -y 'ros-indigo-realsense-camera'
+RUN sudo apt-get install -y gdb
+
 # Make SSH available
 EXPOSE 22
 
@@ -48,6 +87,14 @@ RUN \
   echo "${user}:x:${uid}:" >> /etc/group && \
   echo "${user} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${user}" && \
   chmod 0440 "/etc/sudoers.d/${user}"
+
+
+#Set the user in the dialaout group so that the gps works
+RUN usermod -a -G dialout ${user}
+RUN usermod -a -G video ${user}
+RUN usermod -a -G plugdev ${user}
+
+
 
 # Switch to user
 USER "${user}"
