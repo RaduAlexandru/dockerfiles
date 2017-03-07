@@ -74,6 +74,8 @@ RUN apt-get install -y udev
 #RUN /media/alex/Data/Master/SHK/shk_ws/src/realsense/scripts/patch-uvcvideo-16.04.simple_unsafe.sh
 RUN sudo apt-get install -y 'ros-indigo-realsense-camera'
 RUN sudo apt-get install -y gdb
+#RUN sudo apt-get install -y gnuplot
+RUN sudo apt-get install -y libvxl1-dev
 
 # Make SSH available
 EXPOSE 22
