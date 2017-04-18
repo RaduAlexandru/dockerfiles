@@ -76,8 +76,16 @@ RUN sudo apt-get install -y 'ros-indigo-realsense-camera'
 RUN sudo apt-get install -y gdb
 #RUN sudo apt-get install -y gnuplot
 RUN sudo apt-get install -y libvxl1-dev
-RUN sudo apt-get install -y libceres-dev
+#RUN sudo apt-get install -y libceres-dev
 RUN sudo apt-get install -y libsuitesparse-dev
+RUN sudo apt-get install -y libglm-dev
+RUN sudo apt-get install -y cmake-curses-gui
+
+#FOR ORB-SLAM2
+RUN sudo apt-get install -y libglew-dev
+
+
+
 
 RUN apt-get update
 RUN apt-get install -y tcpdump --fix-missing
