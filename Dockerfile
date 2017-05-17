@@ -76,10 +76,16 @@ RUN sudo apt-get install -y 'ros-indigo-realsense-camera'
 RUN sudo apt-get install -y gdb
 #RUN sudo apt-get install -y gnuplot
 RUN sudo apt-get install -y libvxl1-dev
-#RUN sudo apt-get install -y libceres-dev
-RUN sudo apt-get install -y libsuitesparse-dev
-RUN sudo apt-get install -y libglm-dev
 RUN sudo apt-get install -y cmake-curses-gui
+RUN sudo apt-get install -y libglm-dev
+
+
+#ceres
+RUN sudo apt-get install -y libsuitesparse-dev
+RUN sudo apt-get install -y libatlas-base-dev
+#RUN sudo apt-get install -y libceres-dev
+#Ceres cannot be installed form /media/alex because its not mounted yet
+#RUN dpkg -i /media/alex/Data/Programs_linux/ceres_solver/ceres-solver/build/ceres_1.0-1_amd64.deb
 
 #FOR ORB-SLAM2
 RUN sudo apt-get install -y libglew-dev
@@ -104,6 +110,9 @@ EXPOSE 22
 
 # Mount the user's home directory
 VOLUME "${home}"
+
+#Intel vtune and  MKL
+VOLUME "/opt/intel"
 
 # Clone user into docker image and set up X11 sharing 
 RUN \
