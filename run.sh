@@ -23,4 +23,5 @@ docker run\
   -v "$HOME:$HOME:rw"\
   -v "/media/alex/Data:/media/alex/Data:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
+  -v "/opt/intel:/opt/intel:rw"\
   -it $1 $SHELL
