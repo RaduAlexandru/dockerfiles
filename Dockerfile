@@ -90,6 +90,13 @@ RUN sudo apt-get install -y libatlas-base-dev
 #FOR ORB-SLAM2
 RUN sudo apt-get install -y libglew-dev
 
+#GCC-6.0
+RUN sudo add-apt-repository -y  ppa:ubuntu-toolchain-r/test
+RUN sudo apt -y  update
+RUN sudo apt install -y gcc-6
+RUN sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
+
+
 
 
 
@@ -101,6 +108,12 @@ RUN mv /sbin/dhclient  /usr/sbin/dhclient
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+
+
+#OpenCL
+#RUN sudo apt-get install -y cmake pkg-config python ocl-icd-dev libegl1-mesa-dev ocl-icd-opencl-dev libdrm-dev libxfixes-dev libxext-dev llvm-3.6-dev clang-3.6 libclang-3.6-dev libtinfo-dev libedit-dev zlib1g-dev
+#then do "sudo make install" from /media/alex/Data/Programs_linux/opencl_beignet/beignet/build/ 
+
 
 
 
