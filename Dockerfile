@@ -1,4 +1,4 @@
-FROM ros:indigo
+FROM ubuntu:xenial
 
 # Arguments
 ARG user
@@ -7,99 +7,22 @@ ARG home
 ARG workspace
 ARG shell
 
-# Basic Utilities
-RUN apt-get -y update && apt-get install -y zsh screen tree sudo ssh synaptic
 
+# Basic Utilities
+RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim
 
 #Needed for the command add-apt-repository
 RUN apt-get -y install software-properties-common python-software-properties
 
-#Tmux version 2.3 for ubuntu 14.04
-RUN add-apt-repository -y ppa:pi-rho/dev
-RUN apt-get -y update
-RUN apt-get install -y tmux-next
-
-#Others
-RUN apt-get install -y  git checkinstall cmake vim
-
-
-
-
-# Latest X11 / mesa GL
-RUN apt-get install -y\
-  xserver-xorg-dev-lts-wily\
-  libegl1-mesa-dev-lts-wily\
-  libgl1-mesa-dev-lts-wily\
-  libgbm-dev-lts-wily\
-  mesa-common-dev-lts-wily\
-  libgles2-mesa-lts-wily\
-  libwayland-egl1-mesa-lts-wily\
-  libopenvg1-mesa
-
-# Dependencies required to build rviz
-RUN apt-get install -y\
-  qt4-dev-tools\
-  libqt5core5a libqt5dbus5 libqt5gui5 libwayland-client0\
-  libwayland-server0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1\
-  libxcb-render-util0 libxcb-util0 libxcb-xkb1 libxkbcommon-x11-0\
-  libxkbcommon0
-
-# The rest of ROS-desktop
-RUN apt-get install -y ros-indigo-desktop-full
-
 # Additional development tools
 RUN apt-get install -y x11-apps python-pip build-essential
-RUN pip install catkin_tools
 
-
-#pcl, openc and eigen3
-RUN add-apt-repository -y ppa:v-launchpad-jochen-sprickerhof-de/pcl
-RUN apt-get -y update
-RUN apt-get -y install libpcl-all libopencv-dev libeigen3-dev
-#RUN apt-get -y upgrade 
-
-
-#librealsense prerequisites
-RUN apt-get install -y libusb-1.0-0-dev pkg-config
-RUN sudo apt-get update && sudo apt-get install -y build-essential cmake git xorg-dev libglu1-mesa-dev && git clone https://github.com/glfw/glfw.git /tmp/glfw && cd /tmp/glfw && git checkout latest && cmake . -DBUILD_SHARED_LIBS=ON && make && sudo make install && sudo ldconfig && rm -rf /tmp/glfw
-
-
-#RUN cp /media/alex/Data/Master/SHK/shk_ws/src/realsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
-
-COPY resources /resources/
-RUN cp /resources/99-realsense-libusb.rules /etc/udev/rules.d/
-
-RUN apt-get install -y udev
-#RUN udevadm control --reload-rules && udevadm trigger
-#RUN /media/alex/Data/Master/SHK/shk_ws/src/realsense/scripts/patch-uvcvideo-16.04.simple_unsafe.sh
-RUN sudo apt-get install -y 'ros-indigo-realsense-camera'
-RUN sudo apt-get install -y gdb
-#RUN sudo apt-get install -y gnuplot
-RUN sudo apt-get install -y libvxl1-dev
-RUN sudo apt-get install -y cmake-curses-gui
-RUN sudo apt-get install -y libglm-dev
-
-
-#ceres
-RUN sudo apt-get install -y libsuitesparse-dev
-RUN sudo apt-get install -y libatlas-base-dev
-#RUN sudo apt-get install -y libceres-dev
-#Ceres cannot be installed form /media/alex because its not mounted yet
-#RUN dpkg -i /media/alex/Data/Programs_linux/ceres_solver/ceres-solver/build/ceres_1.0-1_amd64.deb
-
-#FOR ORB-SLAM2
-RUN sudo apt-get install -y libglew-dev
 
 #GCC-6.0
 RUN sudo add-apt-repository -y  ppa:ubuntu-toolchain-r/test
 RUN sudo apt -y  update
 RUN sudo apt install -y gcc-6 g++-6
 RUN sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
-
-#Velodyne driver dependency
-RUN sudo apt-get install -y libpcap-dev
-
-
 
 
 RUN apt-get update
@@ -112,13 +35,37 @@ RUN mv /sbin/dhclient  /usr/sbin/dhclient
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
 
 
-#OpenCL
-#RUN sudo apt-get install -y cmake pkg-config python ocl-icd-dev libegl1-mesa-dev ocl-icd-opencl-dev libdrm-dev libxfixes-dev libxext-dev llvm-3.6-dev clang-3.6 libclang-3.6-dev libtinfo-dev libedit-dev zlib1g-dev
-#then do "sudo make install" from /media/alex/Data/Programs_linux/opencl_beignet/beignet/build/ 
+#-------------------------------------------------------------------------------
+
+#ROS
+RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+RUN sudo apt-get update
+RUN sudo apt-get install -y ros-kinetic-desktop-full
+RUN sudo rosdep init
+RUN rosdep update
+RUN sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
+RUN sudo pip install catkin_tools
+
+#GRAPHICS STUFF
+RUN sudo apt-get install -y libglfw3-dev
+
+
+#Velodyne driver dependency
+RUN sudo apt-get install -y libpcap-dev
+
+#Dependencies for jucipp
+RUN sudo apt-get update 
+RUN sudo apt-get -y install git cmake make g++ libclang-3.8-dev liblldb-3.8-dev clang-format pkg-config libboost-filesystem-dev libboost-serialization-dev libgtksourceviewmm-3.0-dev aspell-en libaspell-dev libgit2-dev exuberant-ctags
 
 
 
 
+
+
+
+
+·-------------------------------------------------------------------------------
 
 # Make SSH available
 EXPOSE 22
@@ -129,7 +76,7 @@ VOLUME "${home}"
 #Intel vtune and  MKL
 VOLUME "/opt/intel"
 
-# Clone user into docker image and set up X11 sharing 
+# Clone user into docker image and set up X11 sharing
 RUN \
   echo "${user}:x:${uid}:${uid}:${user},,,:${home}:${shell}" >> /etc/passwd && \
   echo "${user}:x:${uid}:" >> /etc/group && \
