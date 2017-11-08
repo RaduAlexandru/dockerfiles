@@ -49,23 +49,29 @@ RUN sudo pip install catkin_tools
 
 #GRAPHICS STUFF
 RUN sudo apt-get install -y libglfw3-dev
+RUN sudo apt-get install -y libglm-dev
 
 
 #Velodyne driver dependency
 RUN sudo apt-get install -y libpcap-dev
 
-#Dependencies for jucipp
-RUN sudo apt-get update 
-RUN sudo apt-get -y install git cmake make g++ libclang-3.8-dev liblldb-3.8-dev clang-format pkg-config libboost-filesystem-dev libboost-serialization-dev libgtksourceviewmm-3.0-dev aspell-en libaspell-dev libgit2-dev exuberant-ctags
+#Dependencies for Ceres and Orb-Slam 
+RUN sudo apt-get install -y libgoogle-glog-dev
+RUN sudo apt-get install -y libatlas-base-dev
+RUN sudo apt-get install -y libblas-dev
+RUN sudo apt-get install -y libsuitesparse-dev
+RUN sudo apt-get install -y astyle
+
+#GDB
+RUN sudo apt-get install -y gdb
+
+#TMUXINATOR
+RUN gem install tmuxinator
 
 
 
 
-
-
-
-
-·-------------------------------------------------------------------------------
+#·-------------------------------------------------------------------------------
 
 # Make SSH available
 EXPOSE 22
