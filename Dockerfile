@@ -68,7 +68,10 @@ RUN sudo apt-get install -y gdb
 #TMUXINATOR
 RUN gem install tmuxinator
 
-
+#F.lux
+RUN sudo add-apt-repository -y ppa:nathan-renniewaldock/flux
+RUN sudo apt-get update
+RUN sudo apt-get install -y fluxgui
 
 
 #·-------------------------------------------------------------------------------
