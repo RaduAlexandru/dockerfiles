@@ -18,11 +18,11 @@ RUN apt-get -y install software-properties-common python-software-properties
 RUN apt-get install -y x11-apps python-pip build-essential
 
 
-#GCC-6.0
-RUN sudo add-apt-repository -y  ppa:ubuntu-toolchain-r/test
-RUN sudo apt -y  update
-RUN sudo apt install -y gcc-6 g++-6
-RUN sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
+#GCC-6.0 CUDA AND TORCH don't work with a version higher than 5 https://github.com/torch/cutorch/issues/631
+#RUN sudo add-apt-repository -y  ppa:ubuntu-toolchain-r/test
+#RUN sudo apt -y  update
+#RUN sudo apt install -y gcc-6 g++-6
+#RUN sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
 
 
 RUN apt-get update
@@ -55,7 +55,7 @@ RUN sudo apt-get install -y libglm-dev
 #Velodyne driver dependency
 RUN sudo apt-get install -y libpcap-dev
 
-#Dependencies for Ceres and Orb-Slam 
+#Dependencies for Ceres and Orb-Slam
 RUN sudo apt-get install -y libgoogle-glog-dev
 RUN sudo apt-get install -y libatlas-base-dev
 RUN sudo apt-get install -y libblas-dev
@@ -73,6 +73,84 @@ RUN sudo add-apt-repository -y ppa:nathan-renniewaldock/flux
 RUN sudo apt-get update
 RUN sudo apt-get install -y fluxgui
 
+RUN sudo apt-get install -y meshlab
+
+
+#-------------------------------------------------------------------------------
+#NVIDIA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/devel/Dockerfile
+
+# RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
+#     NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
+#     apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#     apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +5 > cudasign.pub && \
+#     echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
+#     echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+#
+# ENV CUDA_VERSION 8.0.61
+#
+# ENV CUDA_PKG_VERSION 8-0=$CUDA_VERSION-1
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#         cuda-core-$CUDA_PKG_VERSION \
+#         cuda-misc-headers-$CUDA_PKG_VERSION \
+#         cuda-command-line-tools-$CUDA_PKG_VERSION \
+#         cuda-nvrtc-dev-$CUDA_PKG_VERSION \
+#         cuda-nvml-dev-$CUDA_PKG_VERSION \
+#         cuda-nvgraph-dev-$CUDA_PKG_VERSION \
+#         cuda-cusolver-dev-$CUDA_PKG_VERSION \
+#         cuda-cublas-dev-8-0=8.0.61.2-1 \
+#         cuda-cufft-dev-$CUDA_PKG_VERSION \
+#         cuda-curand-dev-$CUDA_PKG_VERSION \
+#         cuda-cusparse-dev-$CUDA_PKG_VERSION \
+#         cuda-npp-dev-$CUDA_PKG_VERSION \
+#         cuda-cudart-dev-$CUDA_PKG_VERSION \
+#         cuda-driver-dev-$CUDA_PKG_VERSION && \
+#     ln -s cuda-8.0 /usr/local/cuda && \
+#     rm -rf /var/lib/apt/lists/*
+#
+#
+# RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+#     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+#
+# ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+# ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+#
+#
+# #CUDANN copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/cudnn7/Dockerfile
+# RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+# RUN sudo apt-get update
+# ENV CUDNN_VERSION 7.0.5.15
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#             libcudnn7=$CUDNN_VERSION-1+cuda8.0 && \
+#     rm -rf /var/lib/apt/lists/*
+#
+# # nvidia-container-runtime
+# ENV NVIDIA_VISIBLE_DEVICES all
+# ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+# ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+#
+#
+#
+# #TORCH
+# #If you use CUDA 9.1 we need to avoid https://github.com/torch/cutorch/issues/797 so uncomment the following line
+# #ENV TORCH_NVCC_FLAGS="-D__CUDA_NO_HALF_OPERATORS__"
+# RUN git clone https://github.com/torch/distro.git /torch --recursive
+# RUN bash /torch/install-deps
+# RUN cd torch && ./install.sh
+# RUN /torch/install/bin/luarocks install torch
+# RUN /torch/install/bin/luarocks install cutorch
+# RUN /torch/install/bin/luarocks install nn
+# RUN /torch/install/bin/luarocks install cunn
+# RUN /torch/install/bin/luarocks install cudnn
+# RUN /torch/install/bin/luarocks install visdom
+# RUN /torch/install/bin/luarocks install luaposix
+#
+# # Export environment variables manually
+# ENV LUA_PATH='/.luarocks/share/lua/5.1/?.lua;/.luarocks/share/lua/5.1/?/init.lua;/torch/install/share/lua/5.1/?.lua;/torch/install/share/lua/5.1/?/init.lua;./?.lua;/torch/install/share/luajit-2.1.0-beta1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua'
+# ENV LUA_CPATH='/.luarocks/lib/lua/5.1/?.so;/torch/install/lib/lua/5.1/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so'
+# ENV PATH=/torch/install/bin:$PATH
+# ENV LD_LIBRARY_PATH=/torch/install/lib:$LD_LIBRARY_PATH
+# ENV DYLD_LIBRARY_PATH=/torch/install/lib:$DYLD_LIBRARY_PATH
+# ENV LUA_CPATH='/torch/install/lib/?.so;'$LUA_CPATH
 
 #·-------------------------------------------------------------------------------
 
