@@ -10,6 +10,7 @@ ARG shell
 
 # Basic Utilities
 RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim
+RUN sudo apt-get install -y apt-transport-https
 
 #Needed for the command add-apt-repository
 RUN apt-get -y install software-properties-common python-software-properties
@@ -74,6 +75,35 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y fluxgui
 
 RUN sudo apt-get install -y meshlab
+RUN sudo apt-get install -y htop
+
+#Latex
+RUN sudo apt-get update
+RUN sudo apt-get install -y texlive-base
+RUN sudo apt-get install -y latex-beamer
+RUN sudo apt-get install -y texlive-latex-extra
+RUN sudo apt-get install -y texlive-bibtex-extra biber
+RUN sudo apt-get install -y texlive-xetex
+RUN sudo apt-get install -y latexmk
+RUN sudo apt-get install -y zathura
+RUN sudo apt-get install -y imagemagick
+RUN sudo apt-get install -y pdf-presenter-console
+    # to solve this issue for pdf-presenter-console: https://github.com/davvil/pdfpc/issues/86 (seems that only the verision 1.0 is needed). Part of the solution is also here in the comment of robotrono: https://github.com/mopidy/mopidy-youtube/issues/47
+    # sudo apt-get install gstreamer0.10  gstreamer0.10-plugins-base gstreamer0.10-plugins-good  gstreamer1.0
+RUN sudo apt-get install -y gstreamer1.0
+
+
+#Atom
+RUN sudo apt-get install -y apt-transport-https
+RUN curl -L https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+RUN sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
+RUN sudo apt-get update
+RUN sudo apt-get install -y atom
+
+#nativefiledialog reuires it https://github.com/mlabbe/nativefiledialog
+RUN sudo apt-get install -y libgtk-3-dev
+
+
 
 
 #-------------------------------------------------------------------------------
