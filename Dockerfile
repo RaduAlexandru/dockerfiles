@@ -103,6 +103,9 @@ RUN sudo apt-get install -y atom
 #nativefiledialog reuires it https://github.com/mlabbe/nativefiledialog
 RUN sudo apt-get install -y libgtk-3-dev
 
+#dir_watcher from emil requires it https://github.com/emilk/emilib/tree/master/emilib
+RUN sudo apt-get install -y libkqueue-dev
+
 
 
 
