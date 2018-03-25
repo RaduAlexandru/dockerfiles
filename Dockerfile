@@ -9,7 +9,7 @@ ARG shell
 
 
 # Basic Utilities
-RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim
+RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim cmake-curses-gui
 RUN sudo apt-get install -y apt-transport-https
 
 #Needed for the command add-apt-repository
@@ -105,6 +105,14 @@ RUN sudo apt-get install -y libgtk-3-dev
 
 #dir_watcher from emil requires it https://github.com/emilk/emilib/tree/master/emilib
 RUN sudo apt-get install -y libkqueue-dev
+
+#Fzf fuzzy finder https://github.com/junegunn/fzf
+# RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+# RUN ~/.fzf/install
+
+#Opencl for INTEL (https://askubuntu.com/questions/850281/opencl-on-ubuntu-16-04-intel-sandy-bridge-cpu)
+# RUN sudo apt install -y ocl-icd-libopencl1 opencl-headers clinfo ocl-icd-opencl-dev beignet
+
 
 
 
