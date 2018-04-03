@@ -106,6 +106,20 @@ RUN sudo apt-get install -y libgtk-3-dev
 #dir_watcher from emil requires it https://github.com/emilk/emilib/tree/master/emilib
 RUN sudo apt-get install -y libkqueue-dev
 
+#for ssh and scp and for using sshpass for inputing password https://stackoverflow.com/questions/50096/how-to-pass-password-to-scp
+RUN sudo apt-get install -y openssh-client openssh-server sshpass
+
+#Lua
+RUN sudo apt-get install -y lua5.2
+
+#clang and llvm as a depenency of halide https://blog.kowalczyk.info/article/k/how-to-install-latest-clang-5.0-on-ubuntu-16.04-xenial-wsl.html
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main"
+RUN sudo apt-get update
+RUN sudo apt-get install -y clang-5.0
+
+
+
 #Fzf fuzzy finder https://github.com/junegunn/fzf
 # RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 # RUN ~/.fzf/install
