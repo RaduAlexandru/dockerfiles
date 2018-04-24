@@ -88,9 +88,10 @@ RUN sudo apt-get install -y latexmk
 RUN sudo apt-get install -y zathura
 RUN sudo apt-get install -y imagemagick
 RUN sudo apt-get install -y pdf-presenter-console
+RUN sudo apt-get install -y texstudio
     # to solve this issue for pdf-presenter-console: https://github.com/davvil/pdfpc/issues/86 (seems that only the verision 1.0 is needed). Part of the solution is also here in the comment of robotrono: https://github.com/mopidy/mopidy-youtube/issues/47
     # sudo apt-get install gstreamer0.10  gstreamer0.10-plugins-base gstreamer0.10-plugins-good  gstreamer1.0
-RUN sudo apt-get install -y gstreamer1.0
+RUN sudo apt-get install -y gstreamer-1.0
 
 
 #Atom
@@ -117,6 +118,11 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main"
 RUN sudo apt-get update
 RUN sudo apt-get install -y clang-5.0
+
+#new mesa drivers to solve the issue of compute shaders and struct alignment in SSBO http://ubuntuhandbook.org/index.php/2018/01/how-to-install-mesa-17-3-3-in-ubuntu-16-04-17-10/
+RUN sudo add-apt-repository -y ppa:oibaf/graphics-drivers
+RUN sudo apt-get update
+RUN sudo apt-get dist-upgrade -y
 
 
 
