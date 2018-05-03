@@ -9,7 +9,7 @@ ARG shell
 
 
 # Basic Utilities
-RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim cmake-curses-gui
+RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim cmake-curses-gui mesa-utils
 RUN sudo apt-get install -y apt-transport-https
 
 #Needed for the command add-apt-repository
@@ -119,11 +119,47 @@ RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xeni
 RUN sudo apt-get update
 RUN sudo apt-get install -y clang-5.0
 
+#python stuff
+RUN sudo apt-get -y install python3-pip
+RUN sudo python3 -m pip install h5py
+RUN sudo python3 -m pip install scipy
+RUN sudo python3 -m pip install ipython
+RUN sudo python3 -m pip install pillow
+
+#playonlinnux (for running Zbrush)
+RUN sudo dpkg --add-architecture i386
+RUN sudo add-apt-repository -y ppa:noobslab/apps
+RUN sudo apt-get update
+RUN sudo apt-get install -y wine playonlinux
+RUN sudo apt-get install -y netcat
+RUN export USER=alex
+RUN export WINEARCH=win64
+
+#blender
+RUN sudo add-apt-repository -y ppa:thomas-schiex/blender
+RUN sudo apt-get update
+RUN sudo apt-get install -y blender
+
 #new mesa drivers to solve the issue of compute shaders and struct alignment in SSBO http://ubuntuhandbook.org/index.php/2018/01/how-to-install-mesa-17-3-3-in-ubuntu-16-04-17-10/
 RUN sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 RUN sudo apt-get update
 RUN sudo apt-get dist-upgrade -y
 
+# NVIDIA driver (cannot insall from docker since it requires input from the user when selecting language, install it after docking inside)
+RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
+RUN sudo apt-get update
+RUN sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-390
+
+# #dependencies for semantic fusion (WITHOUT cuda 7.5)
+# RUN sudo add-apt-repository -y ppa:openjdk-r/ppa
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y cmake-qt-gui git build-essential libusb-1.0-0-dev libudev-dev openjdk-7-jdk freeglut3-dev libglew-dev libsuitesparse-dev libeigen3-dev zlib1g-dev libjpeg-dev
+#     #for openni https://github.com/occipital/OpenNI2
+# RUN sudo apt-get install -y libusb-1.0-0-dev libudev-dev freeglut3-dev doxygen doxygen
+# #install pangoling with sudo dpkg -i /media/alex/Data/Programs_linux/Pangolin/build/pangolin_1.0-1_amd64.deb
+#     #for caffee https://github.com/BVLC/caffe/blob/master/docker/gpu/Dockerfile
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y build-essential cmake libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev libhdf5-serial-dev libleveldb-dev liblmdb-dev libopencv-dev libprotobuf-dev libsnappy-dev protobuf-compiler python-dev python-numpy python-pip python-setuptools python-scipy
 
 
 #Fzf fuzzy finder https://github.com/junegunn/fzf
@@ -136,10 +172,9 @@ RUN sudo apt-get dist-upgrade -y
 
 
 
-
-#-------------------------------------------------------------------------------
-#NVIDIA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/devel/Dockerfile
-
+# #-------------------------------------------------------------------------------
+# #NVIDIA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/devel/Dockerfile
+#
 # RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
 #     NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
 #     apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
@@ -191,6 +226,26 @@ RUN sudo apt-get dist-upgrade -y
 #
 #
 #
+# # CAFEE https://github.com/BVLC/caffe/blob/master/docker/gpu/Dockerfile
+# ENV CAFFE_ROOT=/opt/caffe
+# WORKDIR $CAFFE_ROOT
+#
+# # FIXME: use ARG instead of ENV once DockerHub supports this
+# # https://github.com/docker/hub-feedback/issues/460
+# ENV CLONE_TAG=1.0
+#
+# RUN git clone -b ${CLONE_TAG} --depth 1 https://github.com/BVLC/caffe.git . && \
+#     pip install --upgrade pip && \
+#     cd python && for req in $(cat requirements.txt) pydot; do pip install $req; done && cd .. && \
+#     git clone https://github.com/NVIDIA/nccl.git && cd nccl && make -j install && cd .. && rm -rf nccl && \
+#     mkdir build && cd build && \
+#     cmake -DUSE_CUDNN=1 -DUSE_NCCL=1 .. && \
+# make -j"$(nproc)"
+#
+#
+#
+#
+#
 # #TORCH
 # #If you use CUDA 9.1 we need to avoid https://github.com/torch/cutorch/issues/797 so uncomment the following line
 # #ENV TORCH_NVCC_FLAGS="-D__CUDA_NO_HALF_OPERATORS__"
@@ -214,6 +269,10 @@ RUN sudo apt-get dist-upgrade -y
 # ENV LUA_CPATH='/torch/install/lib/?.so;'$LUA_CPATH
 
 #·-------------------------------------------------------------------------------
+
+#Cleanup
+RUN sudo rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get get update
 
 # Make SSH available
 EXPOSE 22
