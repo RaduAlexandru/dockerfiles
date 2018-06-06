@@ -1,0 +1,344 @@
+FROM ubuntu:xenial
+
+# Arguments
+ARG user
+ARG uid
+ARG home
+ARG workspace
+ARG shell
+
+
+# Basic Utilities
+RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim cmake-curses-gui mesa-utils
+RUN sudo apt-get install -y apt-transport-https
+
+#Needed for the command add-apt-repository
+RUN apt-get -y install software-properties-common python-software-properties
+
+# Additional development tools
+RUN apt-get install -y x11-apps python-pip build-essential
+
+
+#GCC-6.0 CUDA AND TORCH don't work with a version higher than 5 https://github.com/torch/cutorch/issues/631
+#RUN sudo add-apt-repository -y  ppa:ubuntu-toolchain-r/test
+#RUN sudo apt -y  update
+#RUN sudo apt install -y gcc-6 g++-6
+#RUN sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
+
+
+RUN apt-get update
+RUN apt-get install -y tcpdump --fix-missing
+# HACK around https://github.com/dotcloud/docker/issues/5490
+RUN mv /usr/sbin/tcpdump /usr/bin/tcpdump
+RUN mv /sbin/dhclient  /usr/sbin/dhclient
+
+#Make SSH keys work inside the container
+RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+
+
+#-------------------------------------------------------------------------------
+
+#ROS
+RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+RUN sudo apt-get update
+RUN sudo apt-get install -y ros-kinetic-desktop-full
+RUN sudo rosdep init
+RUN rosdep update
+RUN sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
+RUN sudo pip install catkin_tools
+
+#GRAPHICS STUFF
+RUN sudo apt-get install -y libglfw3-dev
+RUN sudo apt-get install -y libglm-dev
+
+
+#Velodyne driver dependency
+RUN sudo apt-get install -y libpcap-dev
+
+#Dependencies for Ceres and Orb-Slam
+RUN sudo apt-get install -y libgoogle-glog-dev
+RUN sudo apt-get install -y libatlas-base-dev
+RUN sudo apt-get install -y libblas-dev
+RUN sudo apt-get install -y libsuitesparse-dev
+RUN sudo apt-get install -y astyle
+
+#GDB
+RUN sudo apt-get install -y gdb
+
+#TMUXINATOR
+RUN gem install tmuxinator
+
+#F.lux
+RUN sudo add-apt-repository -y ppa:nathan-renniewaldock/flux
+RUN sudo apt-get update
+RUN sudo apt-get install -y fluxgui
+
+RUN sudo apt-get install -y meshlab
+RUN sudo apt-get install -y htop
+
+#Latex
+RUN sudo apt-get update
+RUN sudo apt-get install -y texlive-base
+RUN sudo apt-get install -y latex-beamer
+RUN sudo apt-get install -y texlive-latex-extra
+RUN sudo apt-get install -y texlive-bibtex-extra biber
+RUN sudo apt-get install -y texlive-xetex
+RUN sudo apt-get install -y texlive-science
+RUN sudo apt-get install -y latexmk
+RUN sudo apt-get install -y zathura
+RUN sudo apt-get install -y imagemagick
+RUN sudo apt-get install -y pdf-presenter-console
+RUN sudo apt-get install -y texstudio
+    # to solve this issue for pdf-presenter-console: https://github.com/davvil/pdfpc/issues/86 (seems that only the verision 1.0 is needed). Part of the solution is also here in the comment of robotrono: https://github.com/mopidy/mopidy-youtube/issues/47
+    # sudo apt-get install gstreamer0.10  gstreamer0.10-plugins-base gstreamer0.10-plugins-good  gstreamer1.0
+RUN sudo apt-get install -y gstreamer-1.0
+
+
+#Atom
+RUN sudo apt-get install -y apt-transport-https
+RUN curl -L https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+RUN sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
+RUN sudo apt-get update
+RUN sudo apt-get install -y atom
+
+#nativefiledialog reuires it https://github.com/mlabbe/nativefiledialog
+RUN sudo apt-get install -y libgtk-3-dev
+
+#dir_watcher from emil requires it https://github.com/emilk/emilib/tree/master/emilib
+RUN sudo apt-get install -y libkqueue-dev
+
+#for ssh and scp and for using sshpass for inputing password https://stackoverflow.com/questions/50096/how-to-pass-password-to-scp
+RUN sudo apt-get install -y openssh-client openssh-server sshpass
+
+#Lua
+RUN sudo apt-get install -y lua5.2
+
+#clang and llvm as a depenency of halide https://blog.kowalczyk.info/article/k/how-to-install-latest-clang-5.0-on-ubuntu-16.04-xenial-wsl.html
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main"
+RUN sudo apt-get update
+RUN sudo apt-get install -y clang-5.0
+
+#python stuff
+RUN sudo apt-get -y install python3-pip
+RUN sudo apt-get -y install python3-tk
+RUN sudo python3 -m pip install h5py
+RUN sudo python3 -m pip install scipy
+RUN sudo python3 -m pip install ipython
+RUN sudo python3 -m pip install pillow
+RUN sudo python3 -m pip install matplotlib
+RUN sudo python3 -m pip install opencv-python
+
+
+# #playonlinnux (for running Zbrush)
+# RUN sudo dpkg --add-architecture i386
+# RUN sudo add-apt-repository -y ppa:noobslab/apps
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y wine playonlinux
+# RUN sudo apt-get install -y netcat
+# RUN export USER=alex
+# RUN export WINEARCH=win64
+
+#blender
+RUN sudo add-apt-repository -y ppa:thomas-schiex/blender
+RUN sudo apt-get update
+RUN sudo apt-get install -y blender
+
+#new mesa drivers to solve the issue of compute shaders and struct alignment in SSBO http://ubuntuhandbook.org/index.php/2018/01/how-to-install-mesa-17-3-3-in-ubuntu-16-04-17-10/
+RUN sudo add-apt-repository -y ppa:oibaf/graphics-drivers
+RUN sudo apt-get update
+RUN sudo apt-get dist-upgrade -y
+
+# NVIDIA driver (cannot insall from docker since it requires input from the user when selecting language, install it after docking inside)
+RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
+RUN sudo apt-get update
+RUN sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-390
+
+# # Virtual GL client (one has to be installed also on the remote server like the bigcuda)
+# RUN git clone https://github.com/RaduAlexandru/virtual_gl.git
+# RUN sudo dpkg -i ./virtual_gl/virtualgl_2.5.2_amd64.deb
+
+#Octave
+RUN sudo add-apt-repository -y ppa:octave/stable
+RUN sudo apt-get update
+RUN sudo apt-get install -y octave
+RUN sudo apt-get install -y octave-image
+RUN sudo apt-get install -y octave-parallel
+
+# #OCTAVE 4 from source with jit enabled
+# wget -c ftp://ftp.gnu.org/gnu/octave/octave-4.4.0.tar.xz
+# tar -xf octave-4.4.0.tar.xz
+# sudo apt-get install libreadline-gplv2-dev
+# graphicsmagick
+#  libmagick++-dev
+#  sudo apt-get install libmagick++-dev
+#  sudo apt-get install libgraphicsmagick1-dev
+#  sudo apt-get build-dep octave
+# ./configure LLVM_CONFIG=/usr/bin/llvm-config-5.0 --enable-jit --enable-native-build
+# --enable-system-gcc --enable-64 --enable-lib64-directory --disable-jit --enable-native-build
+# checkinstall
+
+#labelme for python 3
+RUN sudo apt-get install -y python3-pyqt5
+RUN sudo python3 -m pip install labelme
+RUN sudo pip3 install labelme
+
+
+
+# #dependencies for semantic fusion (WITHOUT cuda 7.5)
+# RUN sudo add-apt-repository -y ppa:openjdk-r/ppa
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y cmake-qt-gui git build-essential libusb-1.0-0-dev libudev-dev openjdk-7-jdk freeglut3-dev libglew-dev libsuitesparse-dev libeigen3-dev zlib1g-dev libjpeg-dev
+#     #for openni https://github.com/occipital/OpenNI2
+# RUN sudo apt-get install -y libusb-1.0-0-dev libudev-dev freeglut3-dev doxygen doxygen
+# #install pangoling with sudo dpkg -i /media/alex/Data/Programs_linux/Pangolin/build/pangolin_1.0-1_amd64.deb
+#     #for caffee https://github.com/BVLC/caffe/blob/master/docker/gpu/Dockerfile
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y build-essential cmake libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev libhdf5-serial-dev libleveldb-dev liblmdb-dev libopencv-dev libprotobuf-dev libsnappy-dev protobuf-compiler python-dev python-numpy python-pip python-setuptools python-scipy
+
+
+#Fzf fuzzy finder https://github.com/junegunn/fzf
+# RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+# RUN ~/.fzf/install
+
+#Opencl for INTEL (https://askubuntu.com/questions/850281/opencl-on-ubuntu-16-04-intel-sandy-bridge-cpu)
+# RUN sudo apt install -y ocl-icd-libopencl1 opencl-headers clinfo ocl-icd-opencl-dev beignet
+
+
+
+
+# #-------------------------------------------------------------------------------
+# #NVIDIA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/devel/Dockerfile
+#
+# RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
+#     NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
+#     apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
+#     apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +5 > cudasign.pub && \
+#     echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
+#     echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list
+#
+# ENV CUDA_VERSION 8.0.61
+#
+# ENV CUDA_PKG_VERSION 8-0=$CUDA_VERSION-1
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#         cuda-core-$CUDA_PKG_VERSION \
+#         cuda-misc-headers-$CUDA_PKG_VERSION \
+#         cuda-command-line-tools-$CUDA_PKG_VERSION \
+#         cuda-nvrtc-dev-$CUDA_PKG_VERSION \
+#         cuda-nvml-dev-$CUDA_PKG_VERSION \
+#         cuda-nvgraph-dev-$CUDA_PKG_VERSION \
+#         cuda-cusolver-dev-$CUDA_PKG_VERSION \
+#         cuda-cublas-dev-8-0=8.0.61.2-1 \
+#         cuda-cufft-dev-$CUDA_PKG_VERSION \
+#         cuda-curand-dev-$CUDA_PKG_VERSION \
+#         cuda-cusparse-dev-$CUDA_PKG_VERSION \
+#         cuda-npp-dev-$CUDA_PKG_VERSION \
+#         cuda-cudart-dev-$CUDA_PKG_VERSION \
+#         cuda-driver-dev-$CUDA_PKG_VERSION && \
+#     ln -s cuda-8.0 /usr/local/cuda && \
+#     rm -rf /var/lib/apt/lists/*
+#
+#
+# RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+#     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+#
+# ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+# ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+#
+#
+# #CUDANN copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/cudnn7/Dockerfile
+# RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+# RUN sudo apt-get update
+# ENV CUDNN_VERSION 7.0.5.15
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#             libcudnn7=$CUDNN_VERSION-1+cuda8.0 && \
+#     rm -rf /var/lib/apt/lists/*
+#
+# # nvidia-container-runtime
+# ENV NVIDIA_VISIBLE_DEVICES all
+# ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+# ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+#
+#
+#
+# # CAFEE https://github.com/BVLC/caffe/blob/master/docker/gpu/Dockerfile
+# ENV CAFFE_ROOT=/opt/caffe
+# WORKDIR $CAFFE_ROOT
+#
+# # FIXME: use ARG instead of ENV once DockerHub supports this
+# # https://github.com/docker/hub-feedback/issues/460
+# ENV CLONE_TAG=1.0
+#
+# RUN git clone -b ${CLONE_TAG} --depth 1 https://github.com/BVLC/caffe.git . && \
+#     pip install --upgrade pip && \
+#     cd python && for req in $(cat requirements.txt) pydot; do pip install $req; done && cd .. && \
+#     git clone https://github.com/NVIDIA/nccl.git && cd nccl && make -j install && cd .. && rm -rf nccl && \
+#     mkdir build && cd build && \
+#     cmake -DUSE_CUDNN=1 -DUSE_NCCL=1 .. && \
+# make -j"$(nproc)"
+#
+#
+#
+#
+#
+# #TORCH
+# #If you use CUDA 9.1 we need to avoid https://github.com/torch/cutorch/issues/797 so uncomment the following line
+# #ENV TORCH_NVCC_FLAGS="-D__CUDA_NO_HALF_OPERATORS__"
+# RUN git clone https://github.com/torch/distro.git /torch --recursive
+# RUN bash /torch/install-deps
+# RUN cd torch && ./install.sh
+# RUN /torch/install/bin/luarocks install torch
+# RUN /torch/install/bin/luarocks install cutorch
+# RUN /torch/install/bin/luarocks install nn
+# RUN /torch/install/bin/luarocks install cunn
+# RUN /torch/install/bin/luarocks install cudnn
+# RUN /torch/install/bin/luarocks install visdom
+# RUN /torch/install/bin/luarocks install luaposix
+#
+# # Export environment variables manually
+# ENV LUA_PATH='/.luarocks/share/lua/5.1/?.lua;/.luarocks/share/lua/5.1/?/init.lua;/torch/install/share/lua/5.1/?.lua;/torch/install/share/lua/5.1/?/init.lua;./?.lua;/torch/install/share/luajit-2.1.0-beta1/?.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua'
+# ENV LUA_CPATH='/.luarocks/lib/lua/5.1/?.so;/torch/install/lib/lua/5.1/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so'
+# ENV PATH=/torch/install/bin:$PATH
+# ENV LD_LIBRARY_PATH=/torch/install/lib:$LD_LIBRARY_PATH
+# ENV DYLD_LIBRARY_PATH=/torch/install/lib:$DYLD_LIBRARY_PATH
+# ENV LUA_CPATH='/torch/install/lib/?.so;'$LUA_CPATH
+
+#·-------------------------------------------------------------------------------
+
+#Cleanup
+RUN sudo rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get update
+
+# Make SSH available
+EXPOSE 22
+EXPOSE 42421
+
+# Mount the user's home directory
+VOLUME "${home}"
+
+#Intel vtune and  MKL
+VOLUME "/opt/intel"
+
+# Clone user into docker image and set up X11 sharing
+RUN \
+  echo "${user}:x:${uid}:${uid}:${user},,,:${home}:${shell}" >> /etc/passwd && \
+  echo "${user}:x:${uid}:" >> /etc/group && \
+  echo "${user} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${user}" && \
+  chmod 0440 "/etc/sudoers.d/${user}"
+
+
+#Set the user in the dialaout group so that the gps works
+RUN usermod -a -G dialout ${user}
+RUN usermod -a -G video ${user}
+RUN usermod -a -G plugdev ${user}
+
+
+
+# Switch to user
+USER "${user}"
+# This is required for sharing Xauthority
+ENV QT_X11_NO_MITSHM=1
+ENV CATKIN_TOPLEVEL_WS="${workspace}/devel"
+# Switch to the workspace
+WORKDIR ${workspace}
