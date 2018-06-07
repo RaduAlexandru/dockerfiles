@@ -23,7 +23,6 @@ docker run\
   -e DISPLAY\
   -e DOCKER=1\
   -v "$HOME:$HOME:rw"\
-  -v "/media/alex/Data:/media/alex/Data:rw"\
+  -v "/home/local/rosu:/home/local/rosu:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
-  -v "/opt/intel:/opt/intel:rw"\
   -it $1 $SHELL

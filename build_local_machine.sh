@@ -19,4 +19,4 @@ docker build\
   --build-arg workspace=$SCRIPTPATH\
   --build-arg shell=$SHELL\
   -t $1
-  -f Dockerfile_local_machine
+  -f Dockerfile_local_machine .
