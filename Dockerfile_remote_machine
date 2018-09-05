@@ -131,6 +131,10 @@ RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xeni
 RUN sudo apt-get update
 RUN sudo apt-get install -y clang-5.0
 
+#Halide requires a newer version of Eigen than the one present in Ubuntu 16.04 so we grab the one from Bionic Beaver
+RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.4-4_all.deb
+RUN sudo dpkg -i libeigen3-dev_3.3.4-4_all.deb
+
 #python stuff
 RUN sudo apt-get -y install python3-pip
 RUN sudo apt-get -y install python3-tk

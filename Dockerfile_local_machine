@@ -7,9 +7,13 @@ ARG home
 ARG workspace
 ARG shell
 
+# switch to non interactive https://github.com/phusion/baseimage-docker/issues/319
+ENV DEBIAN_FRONTEND noninteractive
+
 
 # Basic Utilities
-RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git checkinstall cmake vim cmake-curses-gui mesa-utils
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
+RUN apt-get -y update && apt-get install -y zsh tree sudo ssh synaptic tmux git meld checkinstall cmake vim cmake-curses-gui mesa-utils bc
 RUN sudo apt-get install -y apt-transport-https
 
 #Needed for the command add-apt-repository
@@ -75,6 +79,8 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y fluxgui
 
 RUN sudo apt-get install -y meshlab
+RUN sudo apt-get install -y gimp
+RUN sudo apt-get install -y inkscape
 RUN sudo apt-get install -y htop
 
 #Latex
@@ -85,6 +91,7 @@ RUN sudo apt-get install -y texlive-latex-extra
 RUN sudo apt-get install -y texlive-bibtex-extra biber
 RUN sudo apt-get install -y texlive-xetex
 RUN sudo apt-get install -y texlive-science
+RUN sudo apt-get install -y texlive-luatex
 RUN sudo apt-get install -y latexmk
 RUN sudo apt-get install -y zathura
 RUN sudo apt-get install -y imagemagick
@@ -96,11 +103,11 @@ RUN sudo apt-get install -y gstreamer-1.0
 
 
 #Atom
-RUN sudo apt-get install -y apt-transport-https
-RUN curl -L https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
-RUN sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
-RUN sudo apt-get update
-RUN sudo apt-get install -y atom
+#RUN sudo apt-get install -y apt-transport-https
+#RUN curl -L https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+#RUN sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
+#RUN sudo apt-get update
+#RUN sudo apt-get install -y atom
 
 #nativefiledialog reuires it https://github.com/mlabbe/nativefiledialog
 RUN sudo apt-get install -y libgtk-3-dev
@@ -119,6 +126,10 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 RUN sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main"
 RUN sudo apt-get update
 RUN sudo apt-get install -y clang-5.0
+
+#Halide requires a newer version of Eigen than the one present in Ubuntu 16.04 so we grab the one from Bionic Beaver
+RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.4-4_all.deb
+RUN sudo dpkg -i libeigen3-dev_3.3.4-4_all.deb
 
 #python stuff
 RUN sudo apt-get -y install python3-pip
@@ -146,25 +157,25 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y blender
 
 #new mesa drivers to solve the issue of compute shaders and struct alignment in SSBO http://ubuntuhandbook.org/index.php/2018/01/how-to-install-mesa-17-3-3-in-ubuntu-16-04-17-10/
-RUN sudo add-apt-repository -y ppa:oibaf/graphics-drivers
-RUN sudo apt-get update
-RUN sudo apt-get dist-upgrade -y
+#RUN sudo add-apt-repository -y ppa:oibaf/graphics-drivers
+#RUN sudo apt-get update
+# RUN sudo apt-get dist-upgrade -y #FOR SOME REASON THIS REMOVES HALF OF ROS_KINETIC---
 
 # NVIDIA driver (cannot insall from docker since it requires input from the user when selecting language, install it after docking inside)
-RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
-RUN sudo apt-get update
-RUN sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-390
+# RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
+# RUN sudo apt-get update
+# RUN sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-390
 
 # # Virtual GL client (one has to be installed also on the remote server like the bigcuda)
 # RUN git clone https://github.com/RaduAlexandru/virtual_gl.git
 # RUN sudo dpkg -i ./virtual_gl/virtualgl_2.5.2_amd64.deb
 
 #Octave
-RUN sudo add-apt-repository -y ppa:octave/stable
-RUN sudo apt-get update
-RUN sudo apt-get install -y octave
-RUN sudo apt-get install -y octave-image
-RUN sudo apt-get install -y octave-parallel
+#RUN sudo add-apt-repository -y ppa:octave/stable
+#RUN sudo apt-get update
+#RUN sudo apt-get install -y octave
+#RUN sudo apt-get install -y octave-image
+#RUN sudo apt-get install -y octave-parallel
 
 # #OCTAVE 4 from source with jit enabled
 # wget -c ftp://ftp.gnu.org/gnu/octave/octave-4.4.0.tar.xz
@@ -342,3 +353,6 @@ ENV QT_X11_NO_MITSHM=1
 ENV CATKIN_TOPLEVEL_WS="${workspace}/devel"
 # Switch to the workspace
 WORKDIR ${workspace}
+
+# switch to interactive
+ENV DEBIAN_FRONTEND teletype
