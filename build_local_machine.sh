@@ -18,5 +18,5 @@ docker build\
   --build-arg home=$HOME\
   --build-arg workspace=$SCRIPTPATH\
   --build-arg shell=$SHELL\
-  -t $1
+  -t $1 \
   -f Dockerfile_local_machine .
