@@ -83,7 +83,7 @@ RUN cd ~/.local/share/nvim/site/autoload/
 RUN wget https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 #Things that are nice to have in order to run some applications
-RUN sudo apt-get update && sudo apt-get install -y -no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev
 
 #NVIDIA CUDA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/9.0/base/Dockerfile
 #RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates apt-transport-https gnupg-curl && \
