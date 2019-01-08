@@ -75,7 +75,7 @@ RUN sudo python3 -m pip install neovim # python supprt is required for packages 
 RUN sudo add-apt-repository -y ppa:neovim-ppa/stable
 RUN sudo apt-get update
 RUN sudo apt-get install -y neovim
-RUN sudo apt-get install y libcanberra-gtk-module libappindicator-dev      #dependency of oni
+RUN sudo apt-get install -y libcanberra-gtk-module libappindicator-dev      #dependency of oni
 RUN wget https://github.com/onivim/oni/releases/download/v0.3.9/Oni-0.3.9-amd64-linux.deb
 RUN sudo dpkg -i Oni-0.3.9-amd64-linux.deb
 RUN mkdir -p ~/.local/share/nvim/site/autoload/
