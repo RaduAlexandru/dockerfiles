@@ -64,12 +64,6 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libei
 RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nvidia-390=390.87-0ubuntu0~gpu18.04.1 && sh "./cleanup.sh"
 
-#visual_studio_code
-RUN wget https://vscode-update.azurewebsites.net/1.28.2/linux-deb-x64/stable
-RUN mv stable code
-RUN sudo apt-get update && sudo apt-get install -y libgconf-2-4 libsecret-1-0 libnss3 && sh "./cleanup.sh"
-RUN sudo dpkg -i code
-
 #neovim and oni
 RUN sudo apt-get update && sudo apt-get -y --no-install-recommends install python3-pip python3-setuptools gconf2 && sh "./cleanup.sh"
 RUN sudo python3 -m pip install neovim # python supprt is required for packages like youcompleteme
