@@ -15,6 +15,7 @@ set -e
 
 # Run the container with shared X11
 docker run\
+  --publish-all=true\
   --net=host\
   --privileged\
   -e SHELL\

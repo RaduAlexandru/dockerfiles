@@ -33,8 +33,9 @@ RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
 #ROS
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
-RUN apt-get -y update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-ros-base ros-melodic-geometry ros-melodic-image-common ros-melodic-image-pipeline  ros-melodic-image-transport-plugins ros-melodic-perception-pcl ros-melodic-vision-opencv ros-melodic-rviz && sh "./cleanup.sh"
+#RUN apt-get -y update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-ros-base ros-melodic-geometry ros-melodic-image-common ros-melodic-image-pipeline  ros-melodic-image-transport-plugins ros-melodic-perception-pcl ros-melodic-vision-opencv ros-melodic-rviz && sh "./cleanup.sh"
 #packages are here  http://www.ros.org/reps/rep-0142.html
+RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && "./cleanup.sh"
 RUN sudo rosdep init
 RUN rosdep update
 # RUN sudo apt-get install -y python-rosinstall python-rosinstall-generator python-wstool build-essential
@@ -82,8 +83,11 @@ RUN mkdir -p ~/.local/share/nvim/site/autoload/
 RUN cd ~/.local/share/nvim/site/autoload/
 RUN wget https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
+#ranger 
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends ranger caca-utils highlight atool w3m poppler-utils mediainfo && "./cleanup.sh"
+
 #Things that are nice to have in order to run some applications
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools && "./cleanup.sh"
 
 #NVIDIA CUDA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/9.0/base/Dockerfile
 #RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates apt-transport-https gnupg-curl && \
@@ -144,8 +148,9 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 #RUN pip3 install --upgrade tensorflow-gpu && sh "./cleanup.sh"
 
 #python stuff
-#RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
-#RUN sudo apt-get update && sudo python3 -m pip install h5py scipy ipython pillow matplotlib opencv-python keras && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get -y install python-pip python-tk python-numpy python-matplotlib python-yaml && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install h5py scipy ipython pillow matplotlib opencv-python keras && sh "./cleanup.sh"
 
 # #Bunch of python things
 # RUN pip --no-cache-dir install \
