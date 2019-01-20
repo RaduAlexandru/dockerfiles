@@ -16,7 +16,7 @@ RUN chmod +x ./cleanup.sh
 RUN sh "./cleanup.sh"
 
 # Basic Utilities
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake vim iputils-ping apt-utils apt-transport-https software-properties-common python-pip wget dirmngr gpg-agent build-essential && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common python-pip wget dirmngr gpg-agent build-essential && sh "./cleanup.sh"
 
 
 # HACK around https://github.com/dotcloud/docker/issues/5490
@@ -57,12 +57,12 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgt
 #clang and llvm as a depenency of halide
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends llvm-6.0-dev && sh "./cleanup.sh"
 
-#Halide requires a newer version of Eigen than the one present in Ubuntu 16.04 so we grab the one from Bionic Beaver
+#Halide requires a newer version of Eigen 
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libeigen3-dev && sh "./cleanup.sh"
 
 # NVIDIA driver
 RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nvidia-390=390.87-0ubuntu0~gpu18.04.1 && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nvidia-driver-410=410.78-0ubuntu1~gpu18.04.1  && sh "./cleanup.sh"
 
 #neovim and oni
 RUN sudo apt-get update && sudo apt-get -y --no-install-recommends install python3-pip python3-setuptools gconf2 && sh "./cleanup.sh"
@@ -83,68 +83,83 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends range
 #Things that are nice to have in order to run some applications
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools && "./cleanup.sh"
 
-#NVIDIA CUDA stuff copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/9.0/base/Dockerfile
-#RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates apt-transport-https gnupg-curl && \
-#    rm -rf /var/lib/apt/lists/* && \
-#    NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
-#    NVIDIA_GPGKEY_FPR=ae09fe4bbd223a84b2ccfce3f60f4b3d7fa2af80 && \
-#    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub && \
-#    apt-key adv --export --no-emit-version -a $NVIDIA_GPGKEY_FPR | tail -n +5 > cudasign.pub && \
-#    echo "$NVIDIA_GPGKEY_SUM  cudasign.pub" | sha256sum -c --strict - && rm cudasign.pub && \
-#    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
-#    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
-#ENV CUDA_VERSION 9.0.176
-#ENV CUDA_PKG_VERSION 9-0=$CUDA_VERSION-1
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-#        cuda-core-$CUDA_PKG_VERSION \
-#        cuda-misc-headers-$CUDA_PKG_VERSION \
-#        cuda-command-line-tools-$CUDA_PKG_VERSION \
-#        cuda-nvrtc-dev-$CUDA_PKG_VERSION \
-#        cuda-nvml-dev-$CUDA_PKG_VERSION \
-#        cuda-nvgraph-dev-$CUDA_PKG_VERSION \
-#        cuda-cusolver-dev-$CUDA_PKG_VERSION \
-#        cuda-cublas-dev-9-0=9.0.176.4-1 \
-#        cuda-cufft-dev-$CUDA_PKG_VERSION \
-#        cuda-curand-dev-$CUDA_PKG_VERSION \
-#        cuda-cusparse-dev-$CUDA_PKG_VERSION \
-#        cuda-npp-dev-$CUDA_PKG_VERSION \
-#        cuda-cudart-dev-$CUDA_PKG_VERSION \
-#        cuda-driver-dev-$CUDA_PKG_VERSION && \
-#    ln -s cuda-9.0 /usr/local/cuda && \
-#    rm -rf /var/lib/apt/lists/* && \
-#    sh "./cleanup.sh"
-#RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
-#    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
-#ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-#ENV LD_LIBRARY_PATH "/usr/local/nvidia/lib:/usr/local/nvidia/lib64:$LD_LIBRARY_PATH"
-
-#RUN sudo apt-get update&& sudo apt-get install -y libcuda1-390=390.87-0ubuntu0~gpu16.04.1 && sh "./cleanup.sh"
-#ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH"
 
 
-#CUDANN copied from https://gitlab.com/nvidia/cuda/blob/ubuntu16.04/8.0/runtime/cudnn7/Dockerfile
-#RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
-#ENV CUDNN_VERSION 7.3.1.20
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-#            libcudnn7=$CUDNN_VERSION-1+cuda9.0 && \
-#    rm -rf /var/lib/apt/lists/* && \
-#    sh "./cleanup.sh"
+#NVIDIA AND CUDNN  https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/dockerfiles/devel-gpu.Dockerfile
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 curl ca-certificates && \
+    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | apt-key add - && \
+    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
+    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
+    rm -rf /var/lib/apt/lists/*
+ENV CUDA_VERSION 10.0.130
+ENV CUDA_PKG_VERSION 10-0=$CUDA_VERSION-1
+# For libraries in the cuda-compat-* package: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cuda-cudart-$CUDA_PKG_VERSION \
+        cuda-compat-10-0=410.48-1 && \
+    ln -s cuda-10.0 /usr/local/cuda && \
+    rm -rf /var/lib/apt/lists/*
+ENV PATH /usr/local/cuda/bin:${PATH}
 # nvidia-container-runtime
-#ENV NVIDIA_VISIBLE_DEVICES all
-#ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
-#ENV NVIDIA_REQUIRE_CUDA "cuda>=8.0"
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+ENV NVIDIA_REQUIRE_CUDA "cuda>=10.0 brand=tesla,driver>=384,driver<385"
+#more cuda stuff
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cuda-command-line-tools-10-0 \
+        cuda-cublas-dev-10-0 \
+        cuda-cudart-dev-10-0 \
+        cuda-cufft-dev-10-0 \
+        cuda-curand-dev-10-0 \
+        cuda-cusolver-dev-10-0 \
+        cuda-cusparse-dev-10-0 \
+        libcudnn7=7.4.1.5-1+cuda10.0 \
+        libcudnn7-dev=7.4.1.5-1+cuda10.0 \
+        libcurl3-dev \
+        libfreetype6-dev \
+        libhdf5-serial-dev \
+        libzmq3-dev \
+        pkg-config \
+        rsync \
+        software-properties-common \
+        unzip \
+        zip \
+        zlib1g-dev \
+        wget \
+        git \
+        && \
+    find /usr/local/cuda-10.0/lib64/ -type f -name 'lib*_static.a' -not -name 'libcudart_static.a' -delete && \
+    rm /usr/lib/x86_64-linux-gnu/libcudnn_static_v7.a
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
-#Tensorflow
-#RUN sudo apt-get update && sudo apt-get install -y \
-#        python3-dev python3-pip \
-#        && sh "./cleanup.sh"
-#RUN pip3 install --upgrade pip
-#RUN pip3 install --upgrade tensorflow-gpu && sh "./cleanup.sh"
 
-#python stuff
-RUN sudo apt-get update && sudo apt-get -y install python-pip python-tk python-numpy python-matplotlib python-yaml && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo python3 -m pip install h5py scipy ipython pillow matplotlib opencv-python keras && sh "./cleanup.sh"
+
+#pytorch from https://github.com/anibali/docker-pytorch/blob/master/cuda-10.0/Dockerfile
+ARG PYTHON_VERSION=3.6
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake git curl vim ca-certificates libjpeg-dev libpng-dev && "./cleanup.sh"
+RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
+     chmod +x ~/miniconda.sh && \
+     ~/miniconda.sh -b -p /opt/conda && \
+     rm ~/miniconda.sh && \
+     /opt/conda/bin/conda install -y python=$PYTHON_VERSION numpy pyyaml scipy ipython mkl mkl-include cython typing && \
+     /opt/conda/bin/conda install -y -c pytorch magma-cuda100 && \
+     /opt/conda/bin/conda install pytorch torchvision cuda100 -c pytorch && \
+     /opt/conda/bin/conda clean -ya
+ENV PATH /opt/conda/bin:$PATH
+RUN pip install ninja
+
+
+
+
+
+
+
+
+# #python stuff
+# RUN sudo apt-get update && sudo apt-get -y install python-pip python-tk python-numpy python-matplotlib python-yaml && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo python3 -m pip install h5py scipy ipython pillow matplotlib opencv-python keras && sh "./cleanup.sh"
 
 # #Bunch of python things
 # RUN pip --no-cache-dir install \
@@ -195,8 +210,8 @@ RUN sudo apt-get update && sudo python3 -m pip install h5py scipy ipython pillow
 #·-------------------------------------------------------------------------------
 
 #Cleanup
-RUN sudo rm -rf /var/lib/apt/lists/*
-RUN sudo apt-get update
+RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get update
 
 # Make SSH available
 EXPOSE 22
