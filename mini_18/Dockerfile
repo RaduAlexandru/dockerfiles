@@ -73,12 +73,11 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 ENV PATH /opt/conda/bin:$PATH
 
 
+
 #pytorch (it comes by default with cuda90 but it's fine since it automatically pulls the dependency and installs it)
 ARG PYTHON_VERSION=3.6
 RUN conda create -n pt python=${PYTHON_VERSION} numpy mkl mkl-include jupyter pytorch torchvision && conda clean -ya
-# RUN echo "source activate pt" > ~/.bashrc 
-# ENV PATH /opt/conda/envs/pt/bin:$PATH
-# RUN /bin/bash -c "source activate pt"
+
 
 #ROS
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -117,8 +116,8 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 RUN conda install -n pt  matplotlib  && conda clean -ya
 
 
-#default command to run when running the container (activate the conda environment so if we run jupyter it all works and runs off the correct python version)
-ENTRYPOINT echo "source activate pt" >> ~/.bashrc && echo "changeps1: False" > ~/.condarc  &&  /bin/bash
+#default command to run when running the container 
+ENTRYPOINT ./setup.sh  &&  /bin/bash
 
 
 
