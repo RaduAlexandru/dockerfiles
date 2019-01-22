@@ -26,4 +26,4 @@ docker run\
   -v "/media/rosu/INTENSO:/media/rosu/INTENSO:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
   -v "/opt/intel:/opt/intel:rw"\
-  -it $1 $SHELL
+  -it $1
