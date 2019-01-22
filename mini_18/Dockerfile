@@ -76,8 +76,9 @@ ENV PATH /opt/conda/bin:$PATH
 #pytorch (it comes by default with cuda90 but it's fine since it automatically pulls the dependency and installs it)
 ARG PYTHON_VERSION=3.6
 RUN conda create -n pt python=${PYTHON_VERSION} numpy mkl mkl-include jupyter pytorch torchvision && conda clean -ya
-RUN echo "source activate pt" > ~/.bashrc 
-ENV PATH /opt/conda/envs/pt/bin:$PATH
+# RUN echo "source activate pt" > ~/.bashrc 
+# ENV PATH /opt/conda/envs/pt/bin:$PATH
+# RUN /bin/bash -c "source activate pt"
 
 #ROS
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -110,6 +111,22 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends range
 #Things that are nice to have in order to run some applications
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools && "./cleanup.sh"
 
+#python libs
+# sudo apt-get install python3-tk
+RUN conda install -n pt  matplotlib  && conda clean -ya
+# RUN echo "source activate pt" > ~/.bashrc 
+# ENV PATH /opt/conda/envs/pt/bin:$PATH
+# RUN /bin/bash -c "source activate pt"
+
+
+#default command to run when running the container (activate the conda environment so if we run jupyter it all works and runs off the correct python version)
+# CMD [".", "activate pt"] 
+# CMD ["source", "activate", "pt"] 
+# RUN echo "source activate pt" > ~/.bashrc 
+# CMD source activate pt && /bin/bash && source activate pt
+# CMD /bin/bash -c "source ~/.bashrc" && /bin/bash
+# ENTRYPOINT source activate pt && /bin/bash "use && to separate your code"
+ENTRYPOINT echo "source activate pt" >> ~/.bashrc && /bin/bash
 
 
 
