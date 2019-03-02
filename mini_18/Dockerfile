@@ -127,12 +127,13 @@ WORKDIR /opt/pytorch
 # ENV CMAKE_PREFIX_PATH /opt/pytorch_installed
 ENV BUILD_TORCH ON 
 ENV FULL_CAFFE2 1
+ENV MAX_JOBS 4
 RUN python3 setup.py install 
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
-# # RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
-# # WORKDIR /opt/vision
-# # ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
-# # RUN python setup.py install
+RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
+WORKDIR /opt/vision
+# ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
+RUN python3 setup.py install
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 # # WORKDIR /opt/pytorch
 # # ENV BUILD_TORCH ON 
@@ -154,9 +155,24 @@ RUN sudo apt-get update && sudo python3 -m pip install numpy jupyter h5py scipy 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends dvipng  python-tk && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get -y install python-pip && sh "./cleanup.sh"
+RUN pip2 install pyyaml
+
+#to mount the bagserver 
+RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.sh"
+
 
 #Things that are nice to have in order to run some applications
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools meshlab ffmpeg libceres-dev && "./cleanup.sh"
+
+
+
+
+
+
+
+
+
 
 # #python libs
 # RUN conda install -n pt  matplotlib pyyaml scikit-image && conda clean -ya
