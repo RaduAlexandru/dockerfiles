@@ -11,13 +11,12 @@ ARG shell
 # switch to non interactive https://github.com/phusion/baseimage-docker/issues/319
 ENV DEBIAN_FRONTEND noninteractive
 
-#copy the cleanup script so that its accesible in docker https://stackoverflow.com/a/53167819
+# #copy the cleanup script so that its accesible in docker https://stackoverflow.com/a/53167819
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
-RUN sh "./cleanup.sh"
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
@@ -42,27 +41,80 @@ RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
 # RUN rm /opt/conda/envs/pt/lib/libfontconfig.so.1 /opt/conda/envs/pt/lib/libfontconfig.so /opt/conda/envs/pt/lib/libfontconfig.so.1.11.1 
 
 
+#things like spconv require cmake >3.13 https://github.com/traveller59/spconv
+# RUN sudo apt-get purge cmake
+RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
+WORKDIR /
+RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz 
+RUN tar -xvzf cmake-3.14.0.tar.gz 
+WORKDIR cmake-3.14.0/ 
+RUN ./configure
+RUN make -j4
+RUN sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
+WORKDIR /
+RUN rm cmake-3.14.0.tar.gz && rm -rf cmake-3.14.0
+
+
+#python3
+COPY cleanup.sh ./
+RUN chmod +x ./cleanup.sh
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools && sh "./cleanup.sh"
+
+#switch to python3  https://linuxconfig.org/how-to-change-from-default-to-alternative-python-version-on-debian-linux
+#this is needed so that catkin uses python3 and therefore pybind uses python3 which is the only one that can use spconv..
+RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
 
 
 
 
 
 
-
-
-#ROS
+#ROS and install also catkin for python3
+COPY cleanup.sh ./
+RUN chmod +x ./cleanup.sh
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && "./cleanup.sh"
+RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && sh "./cleanup.sh"
+RUN sudo python3 -m pip install catkin-tools rosdep
 RUN sudo rosdep init
 RUN rosdep update
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python-catkin-tools && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python-catkin-tools && sh "./cleanup.sh"
 
 #GRAPHICS STUFF
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libglfw3-dev && sh "./cleanup.sh"
 
 #Latex
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-base texlive-latex-extra texlive-latex-recommended texlive-science texlive-pictures texlive-fonts-recommended texlive-luatex imagemagick texstudio && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-base texlive-latex-extra texlive-latex-recommended texlive-science texlive-pictures texlive-fonts-recommended texlive-luatex imagemagick texstudio && sh "./cleanup.sh"
+#for solving https://ubuntuforums.org/showthread.php?t=945365
+# RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends lmodern && sh "./cleanup.sh" 
+#Fuck it, just install everything related to latex
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-full  && sh "./cleanup.sh" 
+#pdfpc
+# RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends pdf-presenter-console  && sh "./cleanup.sh" 
+#in order to make pdfpc and libreoffice play videos 
+RUN sudo apt-get update && sudo apt-get install -y gstreamer1.0-plugins-*  && sh "./cleanup.sh" 
+# RUN sudo apt-get update && sudo apt-get install -y gstreamer1.0-python3-plugin-loader   gstreamer0.10 gstreamer1.0 && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo apt-get install -y gstreamer1.0-* && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get install -y cmake valac libgee-0.8-dev libpoppler-glib-dev libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-bad1.0-dev && sh "./cleanup.sh" 
+# RUN sudo apt-get update && sudo apt-get install -y gstreamer-1.0 && sh "./cleanup.sh" 
+# RUN sudo apt-get update && sudo apt-get install -y gstreamer1.0-* && sh "./cleanup.sh" 
+RUN sudo apt-get update && sudo  DEBIAN_FRONTEND=noninteractive  apt install -y ubuntu-restricted-extras && sh "./cleanup.sh" 
+RUN sudo apt-get update && sudo apt-get install -y cmake valac libgee-0.8-dev libpoppler-glib-dev libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-gtk3 && sh "./cleanup.sh" 
+# INSTALL NOW PDFPC FROM THE GITHUB REPO AND DO ALSO A MAKE INSTALL!!
+
+#pdfpc
+WORKDIR /
+RUN wget https://github.com/pdfpc/pdfpc/archive/v4.3.2.tar.gz
+RUN tar -xvzf v4.3.2.tar.gz 
+WORKDIR pdfpc-4.3.2/ 
+RUN mkdir build 
+WORKDIR build
+RUN cmake ..
+RUN make
+RUN sudo checkinstall -D -y --pkgname=pdfpc --pkgversion=4.3.2
+WORKDIR /
+RUN rm v4.3.2.tar.gz && rm -rf pdfpc-4.3.2/
+
 
 #nativefiledialog reuires it https://github.com/mlabbe/nativefiledialog
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-3-dev && sh "./cleanup.sh"
@@ -70,7 +122,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgt
 #clang and llvm as a depenency of halide
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends llvm-6.0-dev && sh "./cleanup.sh"
 
-#Halide requires a newer version of Eigen 
+#Halide requires also Eigen
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libeigen3-dev && sh "./cleanup.sh"
 
 #ranger 
@@ -80,7 +132,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends range
 
 # NVIDIA driver
 RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  nvidia-driver-410=410.78-0ubuntu1~gpu18.04.2  && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  nvidia-driver-410=410.104-0ubuntu0~18.04.1    && sh "./cleanup.sh"
 
 
 #cuda from https://gitlab.com/nvidia/cuda/tree/ubuntu18.04/10.0/devel/cudnn7 and all the directories the it ha above the hierachy
@@ -119,6 +171,7 @@ ENV PATH /usr/local/cuda/bin:${PATH}
 # RUN conda config --env --add channels pytorch
 # RUN conda install -n pt numpy pyyaml mkl mkl-include setuptools cmake cffi typing magma-cuda100 && conda clean -ya 
 # ENV PATH /opt/conda/envs/pt/bin:$PATH
+WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/pytorch /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
 RUN pip3 install numpy pyyaml mkl mkl-include typing 
@@ -129,15 +182,32 @@ ENV BUILD_TORCH ON
 ENV FULL_CAFFE2 1
 ENV MAX_JOBS 4
 RUN python3 setup.py install 
+WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
+WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
 WORKDIR /opt/vision
 # ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
 RUN python3 setup.py install
+WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 # # WORKDIR /opt/pytorch
 # # ENV BUILD_TORCH ON 
 # # RUN tools/build_pytorch_libs.sh
+
+#spconv for sparse convolutions in pytorch
+WORKDIR /
+RUN git clone --recursive https://github.com/traveller59/spconv.git /opt/spconv
+WORKDIR /opt/spconv
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends  libboost-all-dev
+RUN sudo apt-get update && sudo python3 -m pip install wheel
+RUN python3 setup.py bdist_wheel
+WORKDIR /opt/spconv/dist
+RUN sudo python3 -m pip install spconv-1.0-cp36-cp36m-linux_x86_64.whl
+WORKDIR /
+
+#torch scatter in order to have scatter_max which is useful for a pointnet architecture
+RUN sudo python3 -m pip install torch-scatter
 
 
 #blender
@@ -150,13 +220,13 @@ RUN sudo apt-get install -y blender
 
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo python3 -m pip install numpy jupyter h5py scipy ipython pillow matplotlib opencv-python && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet && sh "./cleanup.sh"
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends dvipng  python-tk && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo apt-get -y install python-pip && sh "./cleanup.sh"
-RUN pip2 install pyyaml
+RUN pip2 install pyyaml pathlib
 
 #to mount the bagserver 
 RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.sh"
@@ -165,6 +235,8 @@ RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.s
 #Things that are nice to have in order to run some applications
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools meshlab ffmpeg libceres-dev && "./cleanup.sh"
 
+#default python to 3.6
+# RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
 
 
 
