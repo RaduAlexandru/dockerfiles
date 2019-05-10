@@ -122,8 +122,9 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgt
 #clang and llvm as a depenency of halide
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends llvm-6.0-dev && sh "./cleanup.sh"
 
-#Halide requires also Eigen
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libeigen3-dev && sh "./cleanup.sh"
+#Halide requires also Eigen but there is an issue when compiling cuda10 and eigen, solution is to upgrade eigen https://github.com/tensorflow/tensorflow/issues/15389
+RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
+RUN sudo dpkg -i libeigen3-dev_3.3.7-1_all.deb
 
 #ranger 
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends ranger caca-utils highlight atool w3m poppler-utils mediainfo && "./cleanup.sh"
