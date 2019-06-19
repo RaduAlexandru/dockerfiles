@@ -73,7 +73,8 @@ RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+# RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 
+RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && sh "./cleanup.sh"
 RUN sudo python3 -m pip install catkin-tools rosdep
 RUN sudo rosdep init
@@ -158,6 +159,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
             cuda-nvml-dev-$CUDA_PKG_VERSION \
             cuda-minimal-build-$CUDA_PKG_VERSION \
             cuda-command-line-tools-$CUDA_PKG_VERSION \
+            # cuda-nvprof-$CUDA_PKG_VERSION \
+            # cuda-nvvp-$CUDA_PKG_VERSION \
+            cuda-visual-tools-$CUDA_PKG_VERSION \
             # libnccl-dev=$NCCL_VERSION-1+cuda10.0 \
             #devel/cudnn
             libcudnn7=$CUDNN_VERSION-1+cuda10.0 \
@@ -167,6 +171,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # apt-mark hold libnccl2 && \
     rm -rf /var/lib/apt/lists/*
 ENV PATH /usr/local/cuda/bin:${PATH}
+
+#nvvp crashes under the default java11 so we need java8 as explained here https://bugs.launchpad.net/ubuntu/+source/nvidia-cuda-toolkit/+bug/1766948
+RUN sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
+RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
 #pytorch
 # RUN conda config --env --add channels pytorch
@@ -216,12 +224,17 @@ RUN sudo add-apt-repository -y ppa:thomas-schiex/blender
 RUN sudo apt-get update
 RUN sudo apt-get install -y blender
 
-#lightworks for video editing 
+#lightworks for video editing (FOR SOME REASON IT DOESNT WORK IN DOCKER)
 # RUN wget https://downloads.lwks.com/v14-5/lightworks-14.5.0-amd64.deb && sudo apt -f -y install && sudo dpkg -i lightworks-14.5.0-amd64.deb && rm lightworks-14.5.0-amd64.deb "./cleanup.sh"
+
+#kdenlive for video edition 
+RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable
+RUN sudo apt-get update
+RUN sudo apt-get install -y kdenlive dbus-x11
 
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo python3 -m pip install numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy && sh "./cleanup.sh"
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
