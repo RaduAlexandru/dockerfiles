@@ -72,6 +72,10 @@ RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6
 #ROS and install also catkin for python3
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
+RUN sudo add-apt-repository main
+RUN sudo add-apt-repository universe
+RUN sudo add-apt-repository multiverse
+RUN sudo add-apt-repository restricted
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 # RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 
 RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -171,6 +175,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # apt-mark hold libnccl2 && \
     rm -rf /var/lib/apt/lists/*
 ENV PATH /usr/local/cuda/bin:${PATH}
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/cuda-10.0/compat:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+
 
 #nvvp crashes under the default java11 so we need java8 as explained here https://bugs.launchpad.net/ubuntu/+source/nvidia-cuda-toolkit/+bug/1766948
 RUN sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
