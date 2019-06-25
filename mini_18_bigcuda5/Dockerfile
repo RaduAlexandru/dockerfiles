@@ -406,7 +406,8 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 
 
 # #default command to run when running the container 
-ENTRYPOINT ./setup.sh &&  /bin/bash
+#ENTRYPOINT ./setup.sh &&  /bin/bash
+ENTRYPOINT  /bin/bash
 
 
 

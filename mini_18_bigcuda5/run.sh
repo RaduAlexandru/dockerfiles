@@ -22,5 +22,6 @@ docker run\
   -e DISPLAY\
   -e DOCKER=1\
   -v "$HOME:$HOME:rw"\
+  -v "/home/local/staff/rosu:/home/local/staff/rosu:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
   -it $1
