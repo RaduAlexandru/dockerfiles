@@ -1,5 +1,10 @@
-FROM ubuntu:bionic
-# FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+# FROM ubuntu:bionic
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,display,video
 
 # Arguments
 ARG user
@@ -135,52 +140,8 @@ RUN sudo dpkg -i libeigen3-dev_3.3.7-1_all.deb
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends ranger caca-utils highlight atool w3m poppler-utils mediainfo && "./cleanup.sh"
 
 
-
-# NVIDIA driver
-RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  nvidia-driver-410=410.104-0ubuntu0~18.04.1    && sh "./cleanup.sh"
-
-
-#cuda from https://gitlab.com/nvidia/cuda/tree/ubuntu18.04/10.0/devel/cudnn7 and all the directories the it ha above the hierachy
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 curl ca-certificates && \
-    curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | apt-key add - && \
-    echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
-    echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list && \
-    rm -rf /var/lib/apt/lists/*
-ENV CUDA_VERSION 10.0.130
-ENV CUDA_PKG_VERSION 10-0=$CUDA_VERSION-1
-ENV CUDNN_VERSION 7.4.1.5
-RUN apt-get update && apt-get install -y --no-install-recommends \
-            #base
-            cuda-cudart-$CUDA_PKG_VERSION \
-            cuda-compat-10-0=410.48-1 \
-            #runtime 
-            cuda-libraries-$CUDA_PKG_VERSION \
-            cuda-nvtx-$CUDA_PKG_VERSION \
-            # libnccl2=$NCCL_VERSION-1+cuda10.0 \
-            #devel
-            cuda-libraries-dev-$CUDA_PKG_VERSION \
-            cuda-nvml-dev-$CUDA_PKG_VERSION \
-            cuda-minimal-build-$CUDA_PKG_VERSION \
-            cuda-command-line-tools-$CUDA_PKG_VERSION \
-            # cuda-nvprof-$CUDA_PKG_VERSION \
-            # cuda-nvvp-$CUDA_PKG_VERSION \
-            cuda-visual-tools-$CUDA_PKG_VERSION \
-            # libnccl-dev=$NCCL_VERSION-1+cuda10.0 \
-            #devel/cudnn
-            libcudnn7=$CUDNN_VERSION-1+cuda10.0 \
-            libcudnn7-dev=$CUDNN_VERSION-1+cuda10.0 && \
-    ln -s cuda-10.0 /usr/local/cuda && \
-    apt-mark hold libcudnn7 && \
-    # apt-mark hold libnccl2 && \
-    rm -rf /var/lib/apt/lists/*
-ENV PATH /usr/local/cuda/bin:${PATH}
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/cuda-10.0/compat:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
-
-
 #nvvp crashes under the default java11 so we need java8 as explained here https://bugs.launchpad.net/ubuntu/+source/nvidia-cuda-toolkit/+bug/1766948
-RUN sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
 RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
 #pytorch
@@ -188,7 +149,9 @@ RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bi
 # RUN conda install -n pt numpy pyyaml mkl mkl-include setuptools cmake cffi typing magma-cuda100 && conda clean -ya 
 # ENV PATH /opt/conda/envs/pt/bin:$PATH
 WORKDIR /
-RUN git clone --recursive https://github.com/pytorch/pytorch /opt/pytorch
+# RUN GIT_TRACE=1 GIT_CURL_VERBOSE=1 git clone --verbose --recursive https://github.com/pytorch/pytorch /opt/pytorch
+# RUN git clone --verbose --recursive git@github.com:pytorch/pytorch.git /opt/pytorch
+RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
 RUN pip3 install numpy pyyaml mkl mkl-include typing 
 WORKDIR /opt/pytorch
@@ -212,15 +175,15 @@ WORKDIR /
 # # RUN tools/build_pytorch_libs.sh
 
 #spconv for sparse convolutions in pytorch
-WORKDIR /
-RUN git clone --recursive https://github.com/traveller59/spconv.git /opt/spconv
-WORKDIR /opt/spconv
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends  libboost-all-dev
-RUN sudo apt-get update && sudo python3 -m pip install wheel
-RUN python3 setup.py bdist_wheel
-WORKDIR /opt/spconv/dist
-RUN sudo python3 -m pip install spconv-1.0-cp36-cp36m-linux_x86_64.whl
-WORKDIR /
+# WORKDIR /
+# RUN git clone --recursive https://github.com/traveller59/spconv.git /opt/spconv
+# WORKDIR /opt/spconv
+# RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends  libboost-all-dev
+# RUN sudo apt-get update && sudo python3 -m pip install wheel
+# RUN python3 setup.py bdist_wheel
+# WORKDIR /opt/spconv/dist
+# RUN sudo python3 -m pip install spconv-1.0-cp36-cp36m-linux_x86_64.whl
+# WORKDIR /
 
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture
 RUN sudo python3 -m pip install torch-scatter
