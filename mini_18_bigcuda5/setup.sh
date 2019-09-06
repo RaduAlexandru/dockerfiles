@@ -12,6 +12,7 @@ echo "Setting up Kdenlive by exporting dbus-launch"
 # ./echo_to_file.sh ~/.condarc "changeps1: false"
 
 #some nice hosts to have
-# ./echo_to_file.sh /etc/hosts "10.7.3.52       mbzirc2"
-# ./echo_to_file.sh /etc/hosts "131.220.7.55       bigcuda5"
+./echo_to_file.sh /etc/hosts "10.7.3.52       mbzirc2"
+./echo_to_file.sh /etc/hosts "131.220.7.55       bigcuda5"
+./echo_to_file.sh /etc/hosts "131.220.7.54       bigcuda4"
 

@@ -1,6 +1,11 @@
 #FROM ubuntu:bionic
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,display,video
+
 # Arguments
 ARG user
 ARG uid
@@ -243,14 +248,10 @@ RUN sudo dpkg -i libeigen3-dev_3.3.7-1_all.deb
 
 
 # NVIDIA driver
-#RUN sudo add-apt-repository -y ppa:graphics-drivers/ppa
-#RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  nvidia-driver-410=410.104-0ubuntu0~18.04.1    && sh "./cleanup.sh"
-#RUN break
-RUN sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-RUN echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
-RUN sudo apt-get update
-#RUN sudo mkdir /usr/lib/nvidia && sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-overwrite" install -y nvidia-396=396.44-0ubuntu1
-RUN sudo mkdir /usr/lib/nvidia && sudo DEBIAN_FRONTEND=noninteractive apt-get  install -y libnvidia-gl-418=418.40.04-0ubuntu1 nvidia-dkms-418=418.40.04-0ubuntu1 nvidia-kernel-source-418=418.40.04-0ubuntu1 libnvidia-compute-418=418.40.04-0ubuntu1 nvidia-compute-utils-418=418.40.04-0ubuntu1 libnvidia-decode-418=418.40.04-0ubuntu1 libnvidia-encode-418=418.40.04-0ubuntu1 nvidia-utils-418=418.40.04-0ubuntu1 xserver-xorg-video-nvidia-418=418.40.04-0ubuntu1 libnvidia-cfg1-418=418.40.04-0ubuntu1 libnvidia-ifr1-418=418.40.04-0ubuntu1 libnvidia-fbc1-418=418.40.04-0ubuntu1 nvidia-driver-418=418.40.04-0ubuntu1
+# RUN sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+# RUN echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
+# RUN sudo apt-get update
+# RUN sudo mkdir /usr/lib/nvidia && sudo DEBIAN_FRONTEND=noninteractive apt-get  install -y libnvidia-gl-418=418.40.04-0ubuntu1 nvidia-dkms-418=418.40.04-0ubuntu1 nvidia-kernel-source-418=418.40.04-0ubuntu1 libnvidia-compute-418=418.40.04-0ubuntu1 nvidia-compute-utils-418=418.40.04-0ubuntu1 libnvidia-decode-418=418.40.04-0ubuntu1 libnvidia-encode-418=418.40.04-0ubuntu1 nvidia-utils-418=418.40.04-0ubuntu1 xserver-xorg-video-nvidia-418=418.40.04-0ubuntu1 libnvidia-cfg1-418=418.40.04-0ubuntu1 libnvidia-ifr1-418=418.40.04-0ubuntu1 libnvidia-fbc1-418=418.40.04-0ubuntu1 nvidia-driver-418=418.40.04-0ubuntu1
 
 
 
