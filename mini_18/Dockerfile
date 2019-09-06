@@ -21,7 +21,7 @@ COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall boabab && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
@@ -98,7 +98,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl
 #for solving https://ubuntuforums.org/showthread.php?t=945365
 # RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends lmodern && sh "./cleanup.sh" 
 #Fuck it, just install everything related to latex
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-full  && sh "./cleanup.sh" 
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends texlive-full imagemagick texstudio  && sh "./cleanup.sh" 
 #pdfpc
 # RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends pdf-presenter-console  && sh "./cleanup.sh" 
 #in order to make pdfpc and libreoffice play videos 
@@ -143,6 +143,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends range
 #nvvp crashes under the default java11 so we need java8 as explained here https://bugs.launchpad.net/ubuntu/+source/nvidia-cuda-toolkit/+bug/1766948
 RUN sudo apt-get update && sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
 RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-$CUDA_PKG_VERSION cuda-visual-tools-$CUDA_PKG_VERSION
 
 #pytorch
 # RUN conda config --env --add channels pytorch
