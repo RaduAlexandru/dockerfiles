@@ -21,11 +21,10 @@ COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall boabab && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
-
 
 #-------------------------------------------------------------------------------
 
@@ -187,7 +186,7 @@ WORKDIR /
 # WORKDIR /
 
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture
-RUN sudo python3 -m pip install torch-scatter
+# RUN sudo python3 -m pip install torch-scatter #THIS HAS TO BE RUN INSIDE DOCKER BECAUSE ONLY THEN WE HAVE TH GPU DRIVER AVAILABLE
 
 
 #blender
@@ -204,14 +203,17 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y kdenlive dbus-x11
 
 #python3 libs 
-RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
+RUN sudo python3 -m pip install --upgrade pip
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort tensorflow==1.15 && sh "./cleanup.sh"
+#needed for tensorboard which required a higher version of setuptools
+RUN sudo python3 -m pip install --upgrade setuptools  && sh "./cleanup.sh" 
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends dvipng  python-tk && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo apt-get -y install python-pip && sh "./cleanup.sh"
-RUN pip2 install pyyaml pathlib
+RUN sudo apt-get update && python2 -m pip install pyyaml pathlib && sh "./cleanup.sh"
 
 #to mount the bagserver 
 RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.sh"
