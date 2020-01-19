@@ -21,7 +21,7 @@ COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
@@ -46,17 +46,16 @@ RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
 
 
 #things like spconv require cmake >3.13 https://github.com/traveller59/spconv
-# RUN sudo apt-get purge cmake
-RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
-WORKDIR /
-RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz 
-RUN tar -xvzf cmake-3.14.0.tar.gz 
-WORKDIR cmake-3.14.0/ 
-RUN ./configure
-RUN make -j4
-RUN sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
-WORKDIR /
-RUN rm cmake-3.14.0.tar.gz && rm -rf cmake-3.14.0
+# RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
+# WORKDIR /
+# RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz 
+# RUN tar -xvzf cmake-3.14.0.tar.gz 
+# WORKDIR cmake-3.14.0/ 
+# RUN ./configure
+# RUN make -j4
+# RUN sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
+# WORKDIR /
+# RUN rm cmake-3.14.0.tar.gz && rm -rf cmake-3.14.0
 
 
 #python3
@@ -151,14 +150,20 @@ RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-comma
 WORKDIR /
 # RUN GIT_TRACE=1 GIT_CURL_VERBOSE=1 git clone --verbose --recursive https://github.com/pytorch/pytorch /opt/pytorch
 # RUN git clone --verbose --recursive git@github.com:pytorch/pytorch.git /opt/pytorch
-RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
+#RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
+RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
 RUN pip3 install numpy pyyaml mkl mkl-include typing 
 WORKDIR /opt/pytorch
+RUN git checkout tags/v1.3.1
+RUN git submodule sync
+RUN git submodule update --init --recursive
 # RUN mkdir /opt/pytorch_installed
 # ENV CMAKE_PREFIX_PATH /opt/pytorch_installed
 ENV BUILD_TORCH ON 
-ENV FULL_CAFFE2 1
+# ENV FULL_CAFFE2 1
+ENV BUILD_CAFFE2_OPS OFF
+ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
 RUN python3 setup.py install 
 WORKDIR /
@@ -186,7 +191,7 @@ WORKDIR /
 # WORKDIR /
 
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture
-# RUN sudo python3 -m pip install torch-scatter #THIS HAS TO BE RUN INSIDE DOCKER BECAUSE ONLY THEN WE HAVE TH GPU DRIVER AVAILABLE
+# RUN sudo python3 -m pip install torch-scatter
 
 
 #blender
@@ -205,9 +210,9 @@ RUN sudo apt-get install -y kdenlive dbus-x11
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
 RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort tensorflow==1.15 && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
-RUN sudo python3 -m pip install --upgrade setuptools  && sh "./cleanup.sh" 
+RUN sudo python3 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh" 
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
@@ -225,8 +230,24 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 #default python to 3.6
 # RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
 
+#realsense drivers  https://github.com/IntelRealSense/realsense-ros/issues/386#issuecomment-422979706
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C8B3A55A6F3EFCDE && sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
+RUN sudo apt-get update && sudo apt-get install -y librealsense2-dkms
+RUN sudo apt-get update && sudo apt-get install -y librealsense2-utils
+RUN sudo apt-get update && sudo apt-get install -y librealsense2-dev
+RUN sudo apt-get update && sudo apt-get install -y ros-melodic-ddynamic-reconfigure
 
+#edge tpu compiler
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+RUN echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+RUN sudo apt-get update
+RUN sudo apt-get install -y edgetpu
 
+#labelimg https://github.com/tzutalin/labelImg
+RUN sudo apt-get install pyqt5-dev-tools
+# RUN sudo python3 -m pip  install -r requirements/requirements-linux-python3.txt
+# RUN make qt5py3
+# RUN python3 labelImg.py
 
 
 

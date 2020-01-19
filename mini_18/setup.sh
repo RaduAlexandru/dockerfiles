@@ -13,6 +13,7 @@ echo "Setting up Kdenlive by exporting dbus-launch"
 
 #some nice hosts to have
 # ./echo_to_file.sh /etc/hosts "10.7.3.52       mbzirc2"
+# ./echo_to_file.sh /etc/hosts "10.7.3.57       mbzirc7"
 # ./echo_to_file.sh /etc/hosts "131.220.7.55       bigcuda5"
 # ./echo_to_file.sh /etc/hosts "10.7.3.180       drz1"
 
