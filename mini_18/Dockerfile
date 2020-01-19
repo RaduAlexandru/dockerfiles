@@ -210,7 +210,9 @@ RUN sudo apt-get install -y kdenlive dbus-x11
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
 RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort torch-scatter && sh "./cleanup.sh"
+#Tensorflow and other stuff that I don't need at the moment
+# RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
 RUN sudo python3 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh" 
 
