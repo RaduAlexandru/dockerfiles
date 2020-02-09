@@ -16,7 +16,6 @@ set -e
 # Run the container with shared X11
 docker run\
   --runtime=nvidia\
-  --gpus all\
   --publish-all=true\
   --net=host\
   --privileged\
