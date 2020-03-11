@@ -17,3 +17,7 @@ echo "Setting up Kdenlive by exporting dbus-launch"
 # ./echo_to_file.sh /etc/hosts "131.220.7.55       bigcuda5"
 # ./echo_to_file.sh /etc/hosts "10.7.3.180       drz1"
 
+#for photoneo phoxi controler to work we need to start this 
+sudo /etc/init.d/dbus start
+sudo /etc/init.d/avahi-daemon start
+

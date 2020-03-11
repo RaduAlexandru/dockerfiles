@@ -1,4 +1,5 @@
 # FROM ubuntu:bionic
+
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 ENV NVIDIA_VISIBLE_DEVICES \
@@ -25,6 +26,16 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmu
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+
+#fixing locales in docker https://daten-und-bass.io/blog/fixing-missing-locale-setting-in-ubuntu-docker-image/
+RUN sudo apt-get update \
+    && DEBIAN_FRONTEND=noninteractive sudo apt-get install -y locales locales-all \
+    && sudo sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && sudo dpkg-reconfigure --frontend=noninteractive locales \
+    && sudo update-locale LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8 
+ENV LC_ALL en_US.UTF-8
+RUN sudo locale-gen
 
 #-------------------------------------------------------------------------------
 
@@ -85,7 +96,7 @@ RUN sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-nmea-msgs && sh "./cleanup.sh"
 RUN sudo python3 -m pip install catkin-tools rosdep
-RUN sudo apt-get install python3-wstool
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-wstool && sh "./cleanup.sh"
 RUN sudo rosdep init
 RUN rosdep update
 # RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python-catkin-tools && sh "./cleanup.sh"
@@ -130,7 +141,7 @@ RUN rm v4.3.2.tar.gz && rm -rf pdfpc-4.3.2/
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-3-dev && sh "./cleanup.sh"
 
 #clang and llvm as a depenency of halide
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-8 llvm-8-dev && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-8 llvm-8-dev libclang-8-dev && sh "./cleanup.sh"
 
 #Halide requires also Eigen but there is an issue when compiling cuda10 and eigen, solution is to upgrade eigen https://github.com/tensorflow/tensorflow/issues/15389
 RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
@@ -193,7 +204,7 @@ WORKDIR /
 # WORKDIR /
 
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture
-# RUN sudo python3 -m pip install torch-scatter
+# RUN sudo python3 -m pip install  --verbose --no-cache-dir  torch-scatter==1.4.0 
 
 
 #blender
@@ -248,10 +259,31 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y edgetpu
 
 #labelimg https://github.com/tzutalin/labelImg
-RUN sudo apt-get install pyqt5-dev-tools
+RUN sudo apt-get install -y pyqt5-dev-tools
 # RUN sudo python3 -m pip  install -r requirements/requirements-linux-python3.txt
 # RUN make qt5py3
 # RUN python3 labelImg.py
+
+#phoxi controller for phoxi scanner 
+RUN sudo apt install -y avahi-daemon
+RUN wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
+RUN tar -xvf PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
+RUN sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run
+RUN rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
+ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
+
+
+#for libgphoto for interfacing with digital cameras
+RUN sudo apt-get install -y libgphoto2-dev
+
+#for building the arc_gantry that will trigger both the rgb nikon and the phoxi. arc_gantry has dependencies on phoxi controller and darktable
+RUN sudo apt-get install -y libsaxon-java xsltproc intltool desktop-file-utils librsvg2-dev liblcms2-dev libjson-glib-dev libexiv2-dev libpugixml-dev libsecret-1-dev libgraphicsmagick1-dev
+
+
+#todo download phoxi and install it, set the environment variables and then run 
+# sudo /media/rosu/Data/phd/ws/phoxi/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run
+
 
 
 
