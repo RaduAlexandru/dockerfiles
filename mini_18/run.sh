@@ -27,4 +27,5 @@ docker run\
   -v "/media/rosu/INTENSO:/media/rosu/INTENSO:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
   -v "/opt/intel:/opt/intel:rw"\
+  --shm-size 2G\ #to avoid bus error(core dumped) when using phoxi controller https://github.com/pytorch/pytorch/issues/2244#issuecomment-318864552
   -it $1

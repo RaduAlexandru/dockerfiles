@@ -268,17 +268,33 @@ RUN sudo apt-get install -y pyqt5-dev-tools
 RUN sudo apt install -y avahi-daemon
 RUN wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
 RUN tar -xvf PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
 RUN sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run
 RUN rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
 ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
 
 
 #for libgphoto for interfacing with digital cameras
-RUN sudo apt-get install -y libgphoto2-dev
+RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+#get newer version of libgphoto from ubuntu disco https://www.ubuntuupdates.org/package/core/disco/main/base/libgphoto2-dev
+RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.22-3_amd64.deb
+RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.22-3_amd64.deb
+RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
+RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+RUN rm libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+RUN sudo apt-get install -y gphoto2
+
+
+#darktable as a dependency for the arc gantry which uses darktable for editing raw images
+RUN sudo apt-get install -y libsaxon-java xsltproc intltool desktop-file-utils librsvg2-dev liblcms2-dev libjson-glib-dev libexiv2-dev libpugixml-dev libsecret-1-dev libgraphicsmagick1-dev
+RUN git clone --recursive https://github.com/darktable-org/darktable.git /opt/darktable
+WORKDIR /opt/darktable
+RUN ./build.sh --prefix /opt/darktable --build-type Release
+RUN cmake --build "/opt/darktable/build" --target install -- -j8
+WORKDIR /
+
 
 #for building the arc_gantry that will trigger both the rgb nikon and the phoxi. arc_gantry has dependencies on phoxi controller and darktable
-RUN sudo apt-get install -y libsaxon-java xsltproc intltool desktop-file-utils librsvg2-dev liblcms2-dev libjson-glib-dev libexiv2-dev libpugixml-dev libsecret-1-dev libgraphicsmagick1-dev
 
 
 #todo download phoxi and install it, set the environment variables and then run 
