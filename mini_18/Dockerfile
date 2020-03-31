@@ -210,7 +210,7 @@ WORKDIR /
 #blender
 RUN sudo add-apt-repository -y ppa:thomas-schiex/blender
 RUN sudo apt-get update
-RUN sudo apt-get install -y blender
+RUN sudo apt-get install -y llvm-6.0-dev blender
 
 #lightworks for video editing (FOR SOME REASON IT DOESNT WORK IN DOCKER)
 # RUN wget https://downloads.lwks.com/v14-5/lightworks-14.5.0-amd64.deb && sudo apt -f -y install && sudo dpkg -i lightworks-14.5.0-amd64.deb && rm lightworks-14.5.0-amd64.deb "./cleanup.sh"
