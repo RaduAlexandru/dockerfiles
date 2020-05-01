@@ -293,12 +293,36 @@ RUN ./build.sh --prefix /opt/darktable --build-type Release
 RUN cmake --build "/opt/darktable/build" --target install -- -j8
 WORKDIR /
 
+#libceres-dev from ubuntu repos is compiled against old eigen and not the new one that we set in this dockerfile so it's better if we just install from source
+RUN sudo apt-get purge libceres-dev
+RUN git clone --recursive https://github.com/ceres-solver/ceres-solver.git /opt/ceres
+WORKDIR /opt/ceres
+RUN mkdir build 
+WORKDIR build
+RUN cmake ..
+RUN make -j3
+RUN make install
+WORKDIR /
 
-#for building the arc_gantry that will trigger both the rgb nikon and the phoxi. arc_gantry has dependencies on phoxi controller and darktable
 
 
-#todo download phoxi and install it, set the environment variables and then run 
-# sudo /media/rosu/Data/phd/ws/phoxi/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run
+#oniv2 I couldnt build it from source because it fails at esy-autoconf with some texinfo error of misplaced  }
+# RUN curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
+# RUN sudo bash nodesource_setup.sh
+# RUN sudo apt-get install -y nodejs
+# RUN sudo apt-get install -y ragel nasm libharfbuzz-dev clang automake1.11 libacl1-dev
+# RUN sudo npm install -g esy -unsafe-perm=true
+#follow the steps in https://onivim.github.io/docs/for-developers/building so you have to clone when you are in docker this and run the build thingies 
+# git clone https://github.com/onivim/oni2
+# cd oni2
+# esy install
+# esy bootstrap
+# esy build
+# sudo npm install -g node-gyp
+# sudo node install-node-deps.js
+# esy run
+
+
 
 
 
