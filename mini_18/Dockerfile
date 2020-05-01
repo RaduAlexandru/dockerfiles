@@ -253,10 +253,10 @@ RUN sudo apt-get update && sudo apt-get install -y librealsense2-dev
 RUN sudo apt-get update && sudo apt-get install -y ros-melodic-ddynamic-reconfigure
 
 #edge tpu compiler
-RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-RUN echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
-RUN sudo apt-get update
-RUN sudo apt-get install -y edgetpu
+#RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+#RUN echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+#RUN sudo apt-get update
+#RUN sudo apt-get install -y edgetpu
 
 #labelimg https://github.com/tzutalin/labelImg
 RUN sudo apt-get install -y pyqt5-dev-tools
@@ -277,12 +277,12 @@ ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-
 #for libgphoto for interfacing with digital cameras
 RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
 #get newer version of libgphoto from ubuntu disco https://www.ubuntuupdates.org/package/core/disco/main/base/libgphoto2-dev
-RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.22-3_amd64.deb
-RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.22-3_amd64.deb
-RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
-RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-RUN rm libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-RUN sudo apt-get install -y gphoto2
+#RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.22-3_amd64.deb
+#RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.22-3_amd64.deb
+#RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
+#RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+#RUN rm libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+#RUN sudo apt-get install -y gphoto2
 
 
 #darktable as a dependency for the arc gantry which uses darktable for editing raw images
@@ -294,7 +294,7 @@ RUN cmake --build "/opt/darktable/build" --target install -- -j8
 WORKDIR /
 
 #libceres-dev from ubuntu repos is compiled against old eigen and not the new one that we set in this dockerfile so it's better if we just install from source
-RUN sudo apt-get purge libceres-dev
+RUN sudo apt-get purge -y libceres-dev
 RUN git clone --recursive https://github.com/ceres-solver/ceres-solver.git /opt/ceres
 WORKDIR /opt/ceres
 RUN mkdir build 
