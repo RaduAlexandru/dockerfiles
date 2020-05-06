@@ -203,8 +203,22 @@ WORKDIR /
 # RUN sudo python3 -m pip install spconv-1.0-cp36-cp36m-linux_x86_64.whl
 # WORKDIR /
 
-#torch scatter in order to have scatter_max which is useful for a pointnet architecture
-# RUN sudo python3 -m pip install  --verbose --no-cache-dir  torch-scatter==1.4.0 
+#torch scatter in order to have scatter_max which is useful for a pointnet architecture. It needs the cuda_arch list in order to find nvidia drivers and build the gpu part of the torch-scatter https://github.com/rusty1s/pytorch_scatter/pull/79
+#FORCE_CUDA may be needed for cases like this when the cuda runtime is not exposed during docker build but is actually needed https://github.com/facebookresearch/maskrcnn-benchmark/issues/167
+ENV CUDA_HOME "/usr/local/cuda"
+ENV TORCH_CUDA_ARCH_LIST "6.0 6.1 7.0+PTX"
+ENV TORCH_NVCC_FLAGS "-Xfatbin -compress-all"
+ENV CPATH "/usr/local/cuda/include" 
+RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
+WORKDIR /opt/torch_scatter
+RUN git checkout tags/2.0.4
+RUN git submodule sync
+RUN git submodule update --init --recursive
+RUN FORCE_CUDA=1 python3 setup.py install 
+WORKDIR /
+
+
+
 
 
 #blender
@@ -223,7 +237,7 @@ RUN sudo apt-get install -y kdenlive dbus-x11
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
 RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor && sh "./cleanup.sh"
 #Tensorflow and other stuff that I don't need at the moment
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
@@ -242,8 +256,6 @@ RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.s
 #Things that are nice to have in order to run some applications
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools meshlab ffmpeg libceres-dev && "./cleanup.sh"
 
-#default python to 3.6
-# RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
 
 #realsense drivers  https://github.com/IntelRealSense/realsense-ros/issues/386#issuecomment-422979706
 RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C8B3A55A6F3EFCDE && sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
@@ -286,12 +298,12 @@ RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
 
 
 #darktable as a dependency for the arc gantry which uses darktable for editing raw images
-RUN sudo apt-get install -y libsaxon-java xsltproc intltool desktop-file-utils librsvg2-dev liblcms2-dev libjson-glib-dev libexiv2-dev libpugixml-dev libsecret-1-dev libgraphicsmagick1-dev
-RUN git clone --recursive https://github.com/darktable-org/darktable.git /opt/darktable
-WORKDIR /opt/darktable
-RUN ./build.sh --prefix /opt/darktable --build-type Release
-RUN cmake --build "/opt/darktable/build" --target install -- -j8
-WORKDIR /
+# RUN sudo apt-get install -y libsaxon-java xsltproc intltool desktop-file-utils librsvg2-dev liblcms2-dev libjson-glib-dev libexiv2-dev libpugixml-dev libsecret-1-dev libgraphicsmagick1-dev
+# RUN git clone --recursive https://github.com/darktable-org/darktable.git /opt/darktable
+# WORKDIR /opt/darktable
+# RUN ./build.sh --prefix /opt/darktable --build-type Release
+# RUN cmake --build "/opt/darktable/build" --target install -- -j8
+# WORKDIR /
 
 #libceres-dev from ubuntu repos is compiled against old eigen and not the new one that we set in this dockerfile so it's better if we just install from source
 RUN sudo apt-get purge -y libceres-dev
