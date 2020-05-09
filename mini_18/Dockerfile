@@ -184,6 +184,9 @@ WORKDIR /
 WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
 WORKDIR /opt/vision
+RUN git checkout tags/v0.5.0
+RUN git submodule sync
+RUN git submodule update --init --recursive
 # ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
 RUN python3 setup.py install
 WORKDIR /
