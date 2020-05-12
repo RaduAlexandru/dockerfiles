@@ -297,7 +297,15 @@ RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
 #RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
 #RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
 #RUN rm libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-#RUN sudo apt-get install -y gphoto2
+RUN sudo apt-get install -y gphoto2
+
+#get newer version of libgphoto from ubuntu 19.10 https://pkgs.org/search/?q=libgphoto
+# RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+# RUN wget http://archive.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.23-2_amd64.deb
+# RUN wget  http://archive.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.23-2_amd64.deb
+# RUN wget http://archive.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.23-2_amd64.deb
+# RUN  sudo dpkg -i libgphoto2-6_2.5.23-2_amd64.deb libgphoto2-dev_2.5.23-2_amd64.deb libgphoto2-dev_2.5.23-2_amd64.deb
+# RUN sudo apt-get install -y gphoto2
 
 
 #darktable as a dependency for the arc gantry which uses darktable for editing raw images
