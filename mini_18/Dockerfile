@@ -290,14 +290,50 @@ ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-
 
 
 #for libgphoto for interfacing with digital cameras
-RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+# RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+RUN sudo apt-get install -y usbutils libusb-dev 
 #get newer version of libgphoto from ubuntu disco https://www.ubuntuupdates.org/package/core/disco/main/base/libgphoto2-dev
 #RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.22-3_amd64.deb
 #RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.22-3_amd64.deb
 #RUN wget http://security.ubuntu.com/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
-#RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+
+# RUN wget http://ftp.debian.org/debian/pool/main/libg/libgphoto2/libgphoto2-6_2.5.22-3_amd64.deb
+# RUN wget http://ftp.debian.org/debian/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.22-3_amd64.deb
+# RUN wget http://ftp.debian.org/debian/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.22-3_amd64.deb
+
+# newer one 
+# RUN wget https://ftp.fau.de/ubuntu/ubuntu/pool/main/libg/libgphoto2/libgphoto2-6_2.5.23-2_amd64.deb
+# RUN wget https://ftp.fau.de/ubuntu/ubuntu/pool/main/libg/libgphoto2/libgphoto2-dev_2.5.23-2_amd64.deb
+# RUN wget https://ftp.fau.de/ubuntu/ubuntu/pool/main/libg/libgphoto2/libgphoto2-port12_2.5.23-2_amd64.deb
+
+# RUN sudo apt-get install -y libjpeg62-dev
+# RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
 #RUN rm libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-RUN sudo apt-get install -y gphoto2
+# RUN ls 
+# RUN wtff
+# RUN sudo apt-get install -y gphoto2
+
+#install libgphoto2 from source
+RUN sudo apt-get install -y libpopt-dev
+RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
+WORKDIR /opt/libgphoto2 
+RUN git tag
+RUN git checkout tags/libgphoto2-2_5_23-release
+RUN autoreconf -is
+RUN ./configure 
+RUN make 
+RUN make install
+WORKDIR /
+#install gphoto2 (the command line interface for libgphoto2) from source 
+RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
+WORKDIR /opt/gphoto2 
+RUN git tag
+RUN git checkout tags/gphoto2-2_5_23-release
+RUN autoreconf -is
+RUN ./configure 
+RUN make 
+RUN make install
+WORKDIR /
 
 #get newer version of libgphoto from ubuntu 19.10 https://pkgs.org/search/?q=libgphoto
 # RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
