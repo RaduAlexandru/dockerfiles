@@ -22,7 +22,7 @@ COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
@@ -168,7 +168,7 @@ RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
 RUN pip3 install numpy pyyaml mkl mkl-include typing 
 WORKDIR /opt/pytorch
-RUN git checkout tags/v1.4.0
+RUN git checkout tags/v1.6.0
 RUN git submodule sync
 RUN git submodule update --init --recursive
 # RUN mkdir /opt/pytorch_installed
@@ -184,7 +184,7 @@ WORKDIR /
 WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
 WORKDIR /opt/vision
-RUN git checkout tags/v0.5.0
+RUN git checkout tags/v0.7.0
 RUN git submodule sync
 RUN git submodule update --init --recursive
 # ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
@@ -257,7 +257,7 @@ RUN sudo apt-get update && sudo apt-get -y install cifs-utils && sh "./cleanup.s
 
 
 #Things that are nice to have in order to run some applications
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools meshlab ffmpeg libceres-dev && "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtbb-dev libglm-dev libkqueue-dev libpcap-dev network-manager net-tools meshlab ffmpeg libceres-dev unzip && "./cleanup.sh"
 
 
 #realsense drivers  https://github.com/IntelRealSense/realsense-ros/issues/386#issuecomment-422979706
@@ -281,12 +281,15 @@ RUN sudo apt-get install -y pyqt5-dev-tools
 
 #phoxi controller for phoxi scanner 
 RUN sudo apt install -y avahi-daemon
-RUN wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
-RUN tar -xvf PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
-RUN sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run
-RUN rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu16-STABLE.tar
-ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-
+RUN wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
+# RUN tar -xvf PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.tar
+RUN unzip PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
+# RUN ls
+# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
+RUN chmod +x ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run
+RUN sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run
+RUN rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
+ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-1.2.14
 
 
 #for libgphoto for interfacing with digital cameras
@@ -313,27 +316,37 @@ RUN sudo apt-get install -y usbutils libusb-dev
 # RUN wtff
 # RUN sudo apt-get install -y gphoto2
 
-#install libgphoto2 from source
-RUN sudo apt-get install -y libpopt-dev
-RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
-WORKDIR /opt/libgphoto2 
-RUN git tag
-RUN git checkout tags/libgphoto2-2_5_23-release
-RUN autoreconf -is
-RUN ./configure 
-RUN make 
-RUN make install
-WORKDIR /
-#install gphoto2 (the command line interface for libgphoto2) from source 
-RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
-WORKDIR /opt/gphoto2 
-RUN git tag
-RUN git checkout tags/gphoto2-2_5_23-release
-RUN autoreconf -is
-RUN ./configure 
-RUN make 
-RUN make install
-WORKDIR /
+# #install libgphoto2 from source
+# RUN sudo apt-get install -y libpopt-dev
+# RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
+# WORKDIR /opt/libgphoto2 
+# RUN git tag
+# RUN git checkout tags/libgphoto2-2_5_23-release
+# RUN autoreconf -is
+# RUN ./configure 
+# RUN make 
+# RUN make install
+# WORKDIR /
+# #install gphoto2 (the command line interface for libgphoto2) from source 
+# RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
+# WORKDIR /opt/gphoto2 
+# RUN git tag
+# RUN git checkout tags/gphoto2-2_5_23-release
+# RUN autoreconf -is
+# RUN ./configure 
+# RUN make 
+# RUN make install
+# WORKDIR /
+
+
+#gphoto with the version that works with nikon and with ubuntu 18
+RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
+COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
+COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
+RUN ls
+RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+RUN sudo apt-get install -y gphoto2
 
 #get newer version of libgphoto from ubuntu 19.10 https://pkgs.org/search/?q=libgphoto
 # RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
@@ -371,12 +384,15 @@ WORKDIR /
 # RUN sudo apt-get install -y nodejs
 # RUN sudo apt-get install -y ragel nasm libharfbuzz-dev clang automake1.11 libacl1-dev
 # RUN sudo npm install -g esy -unsafe-perm=true
+#YOU ALSO NEED TO INSTALL GN FROM HERE https://gn.googlesource.com/gn/
+# AND THE DO A sudo ln -s gn /bin/gn
 #follow the steps in https://onivim.github.io/docs/for-developers/building so you have to clone when you are in docker this and run the build thingies 
 # git clone https://github.com/onivim/oni2
 # cd oni2
-# esy install
-# esy bootstrap
-# esy build
+# git checkout 221bef9c94ba1a8794a049a1fdf846d5aea1899c
+# sudo esy install
+# sudo esy bootstrap
+# sudo esy build
 # sudo npm install -g node-gyp
 # sudo node install-node-deps.js
 # esy run
