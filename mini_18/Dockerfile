@@ -376,6 +376,21 @@ RUN make -j3
 RUN make install
 WORKDIR /
 
+#colmap  https://colmap.github.io/install.html
+RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev
+RUN sudo apt-get install -y libcgal-qt5-dev
+RUN git clone https://github.com/colmap/colmap.git /opt/colmap
+WORKDIR /opt/colmap
+RUN git checkout dev
+RUN mkdir build
+WORKDIR build
+RUN cmake ..
+RUN make -j
+RUN sudo make install
+WORKDIR /
+
+
+
 
 
 #oniv2 I couldnt build it from source because it fails at esy-autoconf with some texinfo error of misplaced  }
