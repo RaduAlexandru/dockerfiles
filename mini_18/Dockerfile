@@ -184,11 +184,10 @@ WORKDIR /
 WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
 WORKDIR /opt/vision
-RUN git checkout tags/v0.7.0
-RUN git submodule sync
-RUN git submodule update --init --recursive
-# ENV CMAKE_PREFIX_PATH /opt/conda/envs/pt
-RUN python3 setup.py install
+RUN git checkout tags/v0.7.0 && \ 
+git submodule sync && \
+git submodule update --init --recursive && \
+python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 # # WORKDIR /opt/pytorch
@@ -214,10 +213,10 @@ ARG TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ARG CPATH="/usr/local/cuda/include" 
 RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
 WORKDIR /opt/torch_scatter
-RUN git checkout tags/2.0.4
-RUN git submodule sync
-RUN git submodule update --init --recursive
-RUN FORCE_CUDA=1 python3 setup.py install 
+RUN git checkout tags/2.0.4 && \
+git submodule sync && \
+git submodule update --init --recursive && \
+FORCE_CUDA=1 python3 setup.py install 
 WORKDIR /
 
 
@@ -225,17 +224,13 @@ WORKDIR /
 
 
 #blender
-RUN sudo add-apt-repository -y ppa:thomas-schiex/blender
-RUN sudo apt-get update
-RUN sudo apt-get install -y llvm-6.0-dev blender
+RUN sudo add-apt-repository -y ppa:thomas-schiex/blender && sudo apt-get update && sudo apt-get install -y llvm-6.0-dev blender
 
 #lightworks for video editing (FOR SOME REASON IT DOESNT WORK IN DOCKER)
 # RUN wget https://downloads.lwks.com/v14-5/lightworks-14.5.0-amd64.deb && sudo apt -f -y install && sudo dpkg -i lightworks-14.5.0-amd64.deb && rm lightworks-14.5.0-amd64.deb "./cleanup.sh"
 
 #kdenlive for video edition 
-RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable
-RUN sudo apt-get update
-RUN sudo apt-get install -y kdenlive dbus-x11
+RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable && sudo apt-get update &&  sudo apt-get install -y kdenlive dbus-x11
 
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
@@ -247,9 +242,7 @@ RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py s
 RUN sudo python3 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh" 
 
 #python2.7 libs
-RUN sudo apt-get update && sudo apt-get install -y python-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends dvipng  python-tk && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo apt-get -y install python-pip && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo apt-get install -y python-pip python-tk dvipng  python-tk   && sh "./cleanup.sh"
 RUN sudo apt-get update && python2 -m pip install pyyaml pathlib && sh "./cleanup.sh"
 
 #to mount the bagserver 
@@ -262,10 +255,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 
 #realsense drivers  https://github.com/IntelRealSense/realsense-ros/issues/386#issuecomment-422979706
 RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C8B3A55A6F3EFCDE && sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
-RUN sudo apt-get update && sudo apt-get install -y librealsense2-dkms
-RUN sudo apt-get update && sudo apt-get install -y librealsense2-utils
-RUN sudo apt-get update && sudo apt-get install -y librealsense2-dev
-RUN sudo apt-get update && sudo apt-get install -y ros-melodic-ddynamic-reconfigure
+RUN sudo apt-get update && sudo apt-get install -y librealsense2-dkms librealsense2-utils librealsense2-dev ros-melodic-ddynamic-reconfigure
 
 #edge tpu compiler
 #RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -274,21 +264,18 @@ RUN sudo apt-get update && sudo apt-get install -y ros-melodic-ddynamic-reconfig
 #RUN sudo apt-get install -y edgetpu
 
 #labelimg https://github.com/tzutalin/labelImg
-RUN sudo apt-get install -y pyqt5-dev-tools
+# RUN sudo apt-get install -y pyqt5-dev-tools
 # RUN sudo python3 -m pip  install -r requirements/requirements-linux-python3.txt
 # RUN make qt5py3
 # RUN python3 labelImg.py
 
 #phoxi controller for phoxi scanner 
-RUN sudo apt install -y avahi-daemon
-RUN wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
-# RUN tar -xvf PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.tar
-RUN unzip PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
-# RUN ls
-# ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/media/rosu/Data/phd/ws/phoxi_libraries/prefix/lib
-RUN chmod +x ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run
-RUN sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run
-RUN rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
+RUN sudo apt install -y avahi-daemon && \
+wget https://photoneo.com/files/installer/PhoXi/1.2.14/PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip && \ 
+unzip PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip && \
+chmod +x ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run && \ 
+sudo ./PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run && \
+rm PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run PhotoneoPhoXiControlInstaller-1.2.14-Ubuntu18-STABLE.run.zip
 ENV PHOXI_CONTROL_PATH=/opt/PhotoneoPhoXiControl-1.2.14
 
 
@@ -344,7 +331,7 @@ RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
 COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
 COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
 COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
-RUN ls
+# RUN ls
 RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
 RUN sudo apt-get install -y gphoto2
 
@@ -366,28 +353,68 @@ RUN sudo apt-get install -y gphoto2
 # WORKDIR /
 
 #libceres-dev from ubuntu repos is compiled against old eigen and not the new one that we set in this dockerfile so it's better if we just install from source
-RUN sudo apt-get purge -y libceres-dev
-RUN git clone --recursive https://github.com/ceres-solver/ceres-solver.git /opt/ceres
+RUN sudo apt-get purge -y libceres-dev && \
+git clone --recursive https://github.com/ceres-solver/ceres-solver.git /opt/ceres
 WORKDIR /opt/ceres
 RUN mkdir build 
 WORKDIR build
-RUN cmake ..
-RUN make -j3
-RUN make install
+RUN cmake .. && make -j3 && sudo make install
 WORKDIR /
 
 #colmap  https://colmap.github.io/install.html
-RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev
-RUN sudo apt-get install -y libcgal-qt5-dev
-RUN git clone https://github.com/colmap/colmap.git /opt/colmap
+RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev && \
+git clone https://github.com/colmap/colmap.git /opt/colmap
 WORKDIR /opt/colmap
-RUN git checkout dev
-RUN mkdir build
+RUN git checkout dev && mkdir build
 WORKDIR build
-RUN cmake ..
-RUN make -j
-RUN sudo make install
+RUN cmake .. && make -j && sudo make install
 WORKDIR /
+
+#alicevision needs cmake bigger than 3.11
+RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
+WORKDIR /
+RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz  && tar -xvzf cmake-3.14.0.tar.gz 
+WORKDIR cmake-3.14.0/ 
+RUN ./configure && make -j4 && sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
+WORKDIR /
+#other dependencies for alicevision
+# RUN sudo apt-get install -y openexr libopenimageio-dev
+RUN sudo apt-get install -y openexr
+#geogram
+RUN git clone https://github.com/alicevision/geogram.git /opt/geogram
+WORKDIR /opt/geogram
+RUN git checkout tags/v1.7.6 && \ 
+git submodule sync && \
+git submodule update --init --recursive && \
+sh -f configure.sh
+WORKDIR build/Linux64-gcc-dynamic-Release 
+RUN make -j4 && make install
+WORKDIR /
+#OpenImageIO
+RUN git clone https://github.com/OpenImageIO/oiio.git /opt/oiio
+WORKDIR /opt/oiio
+RUN git checkout tags/Release-2.2.7.0 && \ 
+git submodule sync && \
+git submodule update --init --recursive && \
+mkdir build
+WORKDIR build
+RUN cmake -DUSE_PYTHON=0 -DOIIO_BUILD_TESTS=0 .. && make -j4 && make install
+WORKDIR /
+#alicevision itself
+RUN git clone --recursive https://github.com/alicevision/AliceVision.git /opt/alicevision
+WORKDIR /opt/alicevision 
+RUN git checkout tags/v2.3.0 && \ 
+git submodule sync && \
+git submodule update --init --recursive && \
+mkdir build
+WORKDIR build
+RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4 && sudo make install
+WORKDIR /
+#meshroom 
+RUN sudo python3 -m pip install psutil enum34 PySide2 markdown requests
+ENV ALICEVISION_SENSOR_DB=/opt/alicevision/src/aliceVision/sensorDB
+
+
 
 
 
@@ -473,10 +500,8 @@ RUN \
 
 
 #Set the user in the dialaout group so that the gps works
-RUN usermod -a -G dialout ${user}
-RUN usermod -a -G video ${user}
-RUN usermod -a -G audio ${user}
-RUN usermod -a -G plugdev ${user}
+RUN usermod -a -G dialout ${user} && usermod -a -G video ${user} && usermod -a -G audio ${user} && usermod -a -G audio ${user}
+
 
 #own some stuff because they were created by the root user in the docker container
 # RUN chown -R ${user} /opt
