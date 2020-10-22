@@ -370,49 +370,51 @@ WORKDIR build
 RUN cmake .. && make -j && sudo make install
 WORKDIR /
 
-#alicevision needs cmake bigger than 3.11
-RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
-WORKDIR /
-RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz  && tar -xvzf cmake-3.14.0.tar.gz 
-WORKDIR cmake-3.14.0/ 
-RUN ./configure && make -j4 && sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
-WORKDIR /
-#other dependencies for alicevision
-# RUN sudo apt-get install -y openexr libopenimageio-dev
-RUN sudo apt-get install -y openexr
-#geogram
-RUN git clone https://github.com/alicevision/geogram.git /opt/geogram
-WORKDIR /opt/geogram
-RUN git checkout tags/v1.7.6 && \ 
-git submodule sync && \
-git submodule update --init --recursive && \
-sh -f configure.sh
-WORKDIR build/Linux64-gcc-dynamic-Release 
-RUN make -j4 && make install
-WORKDIR /
-#OpenImageIO
-RUN git clone https://github.com/OpenImageIO/oiio.git /opt/oiio
-WORKDIR /opt/oiio
-RUN git checkout tags/Release-2.2.7.0 && \ 
-git submodule sync && \
-git submodule update --init --recursive && \
-mkdir build
-WORKDIR build
-RUN cmake -DUSE_PYTHON=0 -DOIIO_BUILD_TESTS=0 .. && make -j4 && make install
-WORKDIR /
-#alicevision itself
-RUN git clone --recursive https://github.com/alicevision/AliceVision.git /opt/alicevision
-WORKDIR /opt/alicevision 
-RUN git checkout tags/v2.3.0 && \ 
-git submodule sync && \
-git submodule update --init --recursive && \
-mkdir build
-WORKDIR build
-RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4 && sudo make install
-WORKDIR /
-#meshroom 
-RUN sudo python3 -m pip install psutil enum34 PySide2 markdown requests
-ENV ALICEVISION_SENSOR_DB=/opt/alicevision/src/aliceVision/sensorDB
+
+# ####----ALICEVISON-------
+# #alicevision needs cmake bigger than 3.11
+# RUN sudo dpkg -r --force-depends cmake cmake-curses-gui  
+# WORKDIR /
+# RUN wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz  && tar -xvzf cmake-3.14.0.tar.gz 
+# WORKDIR cmake-3.14.0/ 
+# RUN ./configure && make -j4 && sudo checkinstall -D -y --pkgname=cmake --pkgversion=3.14
+# WORKDIR /
+# #other dependencies for alicevision
+# # RUN sudo apt-get install -y openexr libopenimageio-dev
+# RUN sudo apt-get install -y openexr
+# #geogram
+# RUN git clone https://github.com/alicevision/geogram.git /opt/geogram
+# WORKDIR /opt/geogram
+# RUN git checkout tags/v1.7.6 && \ 
+# git submodule sync && \
+# git submodule update --init --recursive && \
+# sh -f configure.sh
+# WORKDIR build/Linux64-gcc-dynamic-Release 
+# RUN make -j4 && make install
+# WORKDIR /
+# #OpenImageIO
+# RUN git clone https://github.com/OpenImageIO/oiio.git /opt/oiio
+# WORKDIR /opt/oiio
+# RUN git checkout tags/Release-2.2.7.0 && \ 
+# git submodule sync && \
+# git submodule update --init --recursive && \
+# mkdir build
+# WORKDIR build
+# RUN cmake -DUSE_PYTHON=0 -DOIIO_BUILD_TESTS=0 .. && make -j4 && make install
+# WORKDIR /
+# #alicevision itself
+# RUN git clone --recursive https://github.com/alicevision/AliceVision.git /opt/alicevision
+# WORKDIR /opt/alicevision 
+# RUN git checkout tags/v2.3.0 && \ 
+# git submodule sync && \
+# git submodule update --init --recursive && \
+# mkdir build
+# WORKDIR build
+# RUN cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4 && sudo make install
+# WORKDIR /
+# #meshroom 
+# RUN sudo python3 -m pip install psutil enum34 PySide2 markdown requests
+# ENV ALICEVISION_SENSOR_DB=/opt/alicevision/src/aliceVision/sensorDB
 
 
 
