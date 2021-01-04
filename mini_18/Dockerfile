@@ -442,6 +442,12 @@ WORKDIR /
 # esy run
 
 
+#audacity which is nice to have to remove noise from recorded videos
+RUN sudo add-apt-repository -y ppa:ubuntuhandbook1/audacity
+RUN sudo apt update
+RUN sudo apt install -y audacity
+
+
 
 
 
