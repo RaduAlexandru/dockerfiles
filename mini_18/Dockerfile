@@ -1,6 +1,7 @@
 # FROM ubuntu:bionic
 
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+# FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
 
 ENV NVIDIA_VISIBLE_DEVICES \
     ${NVIDIA_VISIBLE_DEVICES:-all}
@@ -144,8 +145,9 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgt
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-8 llvm-8-dev libclang-8-dev && sh "./cleanup.sh"
 
 #Halide requires also Eigen but there is an issue when compiling cuda10 and eigen, solution is to upgrade eigen https://github.com/tensorflow/tensorflow/issues/15389
-RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
-RUN sudo dpkg -i libeigen3-dev_3.3.7-1_all.deb
+COPY data/libeigen3-dev_3.3.7-3_all.deb ./
+# RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
+RUN sudo dpkg -i libeigen3-dev_3.3.7-3_all.deb
 
 #ranger 
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends ranger caca-utils highlight atool w3m poppler-utils mediainfo && "./cleanup.sh"
@@ -154,7 +156,10 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends range
 #nvvp crashes under the default java11 so we need java8 as explained here https://bugs.launchpad.net/ubuntu/+source/nvidia-cuda-toolkit/+bug/1766948
 RUN sudo apt-get update && sudo apt-get install  -y --no-install-recommends  openjdk-8-jre && sh "./cleanup.sh"
 RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
-RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-$CUDA_PKG_VERSION cuda-visual-tools-$CUDA_PKG_VERSION && sh "./cleanup.sh"
+# RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-$CUDA_PKG_VERSION cuda-visual-tools-$CUDA_PKG_VERSION && sh "./cleanup.sh"
+# RUN sudo apt-cache search cuda-command-line-tool
+# RUN sudo apt-cache search cuda-visual-tools
+RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-11-1 cuda-visual-tools-11-1 && sh "./cleanup.sh"
 
 #pytorch
 # RUN conda config --env --add channels pytorch
@@ -166,9 +171,9 @@ WORKDIR /
 #RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
 RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
-RUN pip3 install numpy pyyaml mkl mkl-include typing 
+RUN pip3 install numpy pyyaml mkl mkl-include typing dataclasses
 WORKDIR /opt/pytorch
-RUN git checkout tags/v1.6.0
+RUN git checkout tags/v1.7.1
 RUN git submodule sync
 RUN git submodule update --init --recursive
 # RUN mkdir /opt/pytorch_installed
@@ -178,16 +183,18 @@ ENV BUILD_TORCH ON
 ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
-RUN python3 setup.py install 
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install 
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
 WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
+RUN pip3 install typing-extensions 
 WORKDIR /opt/vision
-RUN git checkout tags/v0.7.0 && \ 
+RUN git checkout tags/v0.8.2 && \ 
 git submodule sync && \
-git submodule update --init --recursive && \
-python3 setup.py install
+git submodule update --init --recursive
+# python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 # # WORKDIR /opt/pytorch
@@ -208,7 +215,7 @@ WORKDIR /
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture. It needs the cuda_arch list in order to find nvidia drivers and build the gpu part of the torch-scatter https://github.com/rusty1s/pytorch_scatter/pull/79
 #FORCE_CUDA may be needed for cases like this when the cuda runtime is not exposed during docker build but is actually needed https://github.com/facebookresearch/maskrcnn-benchmark/issues/167
 ARG CUDA_HOME="/usr/local/cuda"
-ARG TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
+ARG TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 8.0+PTX"
 ARG TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ARG CPATH="/usr/local/cuda/include" 
 RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
@@ -257,7 +264,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libtb
 RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C8B3A55A6F3EFCDE && sudo add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/apt-repo bionic main" -u
 RUN sudo apt-get update && sudo apt-get install -y librealsense2-dkms librealsense2-utils librealsense2-dev ros-melodic-ddynamic-reconfigure
 
-#edge tpu compiler
+#edge tpu compilerlibeigen3-dev_3.3.7-1_all.deb
 #RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 #RUN echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
 #RUN sudo apt-get update
@@ -448,7 +455,8 @@ RUN sudo apt update
 RUN sudo apt install -y audacity
 
 
-
+#qt which is needed for some packages 
+RUN sudo apt-get install -y qt4-qmake libqt4-dev
 
 
 
