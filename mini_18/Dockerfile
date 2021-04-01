@@ -338,13 +338,38 @@ RUN sudo apt-get install -y usbutils libusb-dev
 
 
 #gphoto with the version that works with nikon and with ubuntu 18
-RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
-COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
-COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
-COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
-# RUN ls
-RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-RUN sudo apt-get install -y gphoto2
+# RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+# COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
+# COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
+# COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
+# # RUN ls
+# RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+# RUN sudo apt-get install -y gphoto2
+
+#build from source 
+RUN sudo apt-get install -y usbutils libusb-dev automake autoconf pkg-config autopoint gettext libtool libpopt-dev
+#######TODO clone
+RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
+WORKDIR /opt/libgphoto2
+RUN git checkout tags/v2.5.27
+RUN git submodule sync
+RUN git submodule update --init --recursive
+RUN autoreconf --install --symlink
+RUN ./configure --prefix=/usr/local
+RUN ./configure --with-camlibs=standard
+RUN make -j4
+RUN make install
+#the command line interface 
+RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
+WORKDIR /opt/gphoto2
+RUN git checkout tags/v2.5.27
+RUN git submodule sync
+RUN git submodule update --init --recursive
+RUN autoreconf -is
+RUN ./configure --prefix=/usr/local
+RUN make -j4
+RUN make install
+WORKDIR /
 
 #get newer version of libgphoto from ubuntu 19.10 https://pkgs.org/search/?q=libgphoto
 # RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
