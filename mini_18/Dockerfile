@@ -1,7 +1,7 @@
 # FROM ubuntu:bionic
 
 # FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.2.2-cudnn8-devel-ubuntu18.04
 
 ENV NVIDIA_VISIBLE_DEVICES \
     ${NVIDIA_VISIBLE_DEVICES:-all}
@@ -171,9 +171,9 @@ WORKDIR /
 #RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
 RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
-RUN pip3 install numpy pyyaml mkl mkl-include typing dataclasses
+RUN pip3 install numpy pyyaml mkl mkl-include typing dataclasses typing-extensions 
 WORKDIR /opt/pytorch
-RUN git checkout tags/v1.7.1
+RUN git checkout tags/v1.8.0
 RUN git submodule sync
 RUN git submodule update --init --recursive
 # RUN mkdir /opt/pytorch_installed
@@ -183,18 +183,22 @@ ENV BUILD_TORCH ON
 ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install 
+# RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install 
+######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install 
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
 WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
-RUN pip3 install typing-extensions 
+# RUN pip3 install typing-extensions 
 WORKDIR /opt/vision
-RUN git checkout tags/v0.8.2 && \ 
+RUN git checkout tags/v0.9.0 && \ 
 git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install
+######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
+# RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
 # # WORKDIR /opt/pytorch
