@@ -246,7 +246,7 @@ RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable && sudo apt-get upda
 #python3 libs 
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
 RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq && sh "./cleanup.sh"
 #Tensorflow and other stuff that I don't need at the moment
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
@@ -338,38 +338,40 @@ RUN sudo apt-get install -y usbutils libusb-dev
 
 
 #gphoto with the version that works with nikon and with ubuntu 18
-# RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
-# COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
-# COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
-# COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
-# # RUN ls
-# RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
-# RUN sudo apt-get install -y gphoto2
+RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
+COPY data/libgphoto2-6_2.5.22-3_amd64.deb ./
+COPY data/libgphoto2-dev_2.5.22-3_amd64.deb ./
+COPY data/libgphoto2-port12_2.5.22-3_amd64.deb ./
+# RUN ls
+RUN sudo dpkg -i libgphoto2-6_2.5.22-3_amd64.deb libgphoto2-dev_2.5.22-3_amd64.deb libgphoto2-port12_2.5.22-3_amd64.deb 
+RUN sudo apt-get install -y gphoto2
 
-#build from source 
-RUN sudo apt-get install -y usbutils libusb-dev automake autoconf pkg-config autopoint gettext libtool libpopt-dev
-#######TODO clone
-RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
-WORKDIR /opt/libgphoto2
-RUN git checkout tags/v2.5.27
-RUN git submodule sync
-RUN git submodule update --init --recursive
-RUN autoreconf --install --symlink
-RUN ./configure --prefix=/usr/local
-RUN ./configure --with-camlibs=standard
-RUN make -j4
-RUN make install
-#the command line interface 
-RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
-WORKDIR /opt/gphoto2
-RUN git checkout tags/v2.5.27
-RUN git submodule sync
-RUN git submodule update --init --recursive
-RUN autoreconf -is
-RUN ./configure --prefix=/usr/local
-RUN make -j4
-RUN make install
-WORKDIR /
+# #build from source  DOESNT make all the configurations that the deb version of 2.5.22 has
+# RUN sudo apt-get install -y usbutils libusb-dev automake autoconf pkg-config autopoint gettext libtool libpopt-dev libudev-dev
+# #######TODO clone
+# # RUN git clone --recursive https://github.com/gphoto/libgphoto2.git /opt/libgphoto2
+# RUN git clone --recursive https://github.com/RaduAlexandru/libgphoto2 /opt/libgphoto2
+# WORKDIR /opt/libgphoto2
+# #no need to checkout the v2.5.27 because cloning from my repo already assumes that version as the latest one
+# # RUN git checkout tags/v2.5.27
+# # RUN git submodule sync
+# # RUN git submodule update --init --recursive
+# RUN autoreconf --install --symlink
+# RUN ./configure --prefix=/usr/local
+# RUN ./configure --with-camlibs=standard
+# RUN make -j4
+# RUN make install
+# #the command line interface 
+# RUN git clone --recursive https://github.com/gphoto/gphoto2.git /opt/gphoto2
+# WORKDIR /opt/gphoto2
+# RUN git checkout tags/v2.5.27
+# RUN git submodule sync
+# RUN git submodule update --init --recursive
+# RUN autoreconf -is
+# RUN ./configure --prefix=/usr/local
+# RUN make -j4
+# RUN make install
+# WORKDIR /
 
 #get newer version of libgphoto from ubuntu 19.10 https://pkgs.org/search/?q=libgphoto
 # RUN sudo apt-get install -y usbutils libusb-dev libgphoto2-dev
@@ -403,7 +405,7 @@ git clone https://github.com/colmap/colmap.git /opt/colmap
 WORKDIR /opt/colmap
 RUN git checkout dev && mkdir build
 WORKDIR build
-RUN cmake .. && make -j && sudo make install
+RUN cmake .. && make -j 3 && sudo make install
 WORKDIR /
 
 
