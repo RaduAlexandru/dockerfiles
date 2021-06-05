@@ -27,6 +27,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmu
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
+RUN  echo "    IdentityFile ~/.ssh/id_ed25519" >> /etc/ssh/ssh_config
 
 #fixing locales in docker https://daten-und-bass.io/blog/fixing-missing-locale-setting-in-ubuntu-docker-image/
 RUN sudo apt-get update \
