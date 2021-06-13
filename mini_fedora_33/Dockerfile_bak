@@ -1,0 +1,90 @@
+
+FROM nvidia/cuda:11.1-devel
+
+ENV NVIDIA_VISIBLE_DEVICES \
+    ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES \
+    ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics,display,video
+
+
+# Arguments
+ARG user
+ARG uid
+ARG home
+ARG workspace
+ARG shell
+
+# switch to non interactive https://github.com/phusion/baseimage-docker/issues/319
+#ENV DEBIAN_FRONTEND noninteractive
+
+# #copy the cleanup script so that its accesible in docker https://stackoverflow.com/a/53167819
+COPY cleanup.sh ./
+RUN chmod +x ./cleanup.sh
+
+
+#ALL of the  cuda stuff
+#https://www.if-not-true-then-false.com/2018/install-nvidia-cuda-toolkit-on-fedora/
+#RUN dnf install -y wget
+#RUN wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
+#RUN chmod +x cuda_11.3*.run
+#RUN dnf install gcc-c++ mesa-libGLU-devel libX11-devel libXi-devel libXmu-devel
+#RUN dnf install freeglut freeglut-devel
+#RUN ./cuda_11.3.1_465.19.01_linux.run --silent --toolkit --samples
+
+#cuda stuff from negativo17 repos
+
+RUN cat /etc/os-release
+RUN dnf install -y sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping wget build-essential gdb valgrind silversearcher-ag curl dirmng:r gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp && sh "./cleanup.sh"
+
+
+
+
+
+
+#·-------------------------------------------------------------------------------
+
+#Cleanup
+RUN rm -rf /var/lib/apt/lists/*
+#RUN dnf update
+
+# Make SSH available
+EXPOSE 22
+EXPOSE 42421
+# TensorBoard https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
+EXPOSE 6006
+# IPython https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/docker/Dockerfile.gpu
+EXPOSE 8888
+
+# Mount the user's home directory
+VOLUME "${home}"
+
+#Intel vtune and  MKL
+VOLUME "/opt/intel"
+
+# Clone user into docker image and set up X11 sharing
+RUN \
+  echo "${user}:x:${uid}:${uid}:${user},,,:${home}:${shell}" >> /etc/passwd && \
+  echo "${user}:x:${uid}:" >> /etc/group 
+  #echo "${user} ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/${user}" && \
+  #chmod 0440 "/etc/sudoers.d/${user}"
+
+
+#Set the user in the dialaout group so that the gps works
+RUN usermod -a -G dialout ${user} && usermod -a -G video ${user} && usermod -a -G audio ${user} && usermod -a -G audio ${user}
+
+
+#own some stuff because they were created by the root user in the docker container
+# RUN chown -R ${user} /opt
+# USER ${user}
+# USER root
+
+# Switch to user
+USER "${user}"
+# This is required for sharing Xauthority
+ENV QT_X11_NO_MITSHM=1
+ENV CATKIN_TOPLEVEL_WS="${workspace}/devel"
+# Switch to the workspace
+WORKDIR ${workspace}
+
+# switch to interactive
+#ENV DEBIAN_FRONTEND teletype
