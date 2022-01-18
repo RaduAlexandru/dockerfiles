@@ -2,6 +2,7 @@ echo "Performing setup of the system by writing some config files"
 #ros sourcing
 ./echo_to_file.sh ~/.bashrc "source /opt/ros/melodic/setup.bash"
 ./echo_to_file.sh ~/.bashrc "source /media/rosu/Data/phd/c_ws/devel/setup.bash"
+./echo_to_file.sh ~/.bashrc "source /home/user/rosu/c_ws/devel/setup.bash"
 
 echo "Setting up Kdenlive by exporting dbus-launch"
 # ./echo_to_file ~/.bashrc "export $(dbus-launch)"
@@ -13,6 +14,11 @@ echo "Setting up Kdenlive by exporting dbus-launch"
 
 #some nice hosts to have
 # ./echo_to_file.sh /etc/hosts "10.7.3.52       mbzirc2"
+# ./echo_to_file.sh /etc/hosts "10.7.3.57       mbzirc7"
 # ./echo_to_file.sh /etc/hosts "131.220.7.55       bigcuda5"
 # ./echo_to_file.sh /etc/hosts "10.7.3.180       drz1"
+
+#for photoneo phoxi controler to work we need to start this 
+sudo /etc/init.d/dbus start
+sudo /etc/init.d/avahi-daemon start
 
