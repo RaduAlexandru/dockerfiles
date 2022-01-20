@@ -253,6 +253,8 @@ RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py s
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
 RUN sudo python3 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh"
+#we need to downgrade it because tensorboard has an issue with newer versions https://exerror.com/attributeerror-module-setuptools-_distutils-has-no-attribute-version/
+RUN python3 -m pip install setuptools==59.5.0 
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-pip python-tk dvipng  python-tk   && sh "./cleanup.sh"
