@@ -496,13 +496,11 @@ RUN sudo apt-get install -y qt4-qmake libqt4-dev
 
 #things for Instant Neural Primitives https://github.com/NVlabs/instant-ngp----------------------------------------------------------------
 #CMAKE above 3.19  https://askubuntu.com/a/8652941
-RUN sudo apt-get install -y gpg wget
-RUN sudo apt update &&  sudo apt install -y software-properties-common lsb-release && sudo apt clean all
+# https://gitlab.kitware.com/cmake/cmake/-/issues/22245
+RUN sudo apt-get update
+RUN sudo apt-get install software-properties-common wget
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 RUN sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
-RUN sudo apt update
-RUN sudo apt install -y kitware-archive-keyring
-RUN sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
 RUN sudo apt update
 RUN sudo apt install -y cmake
 #other pakcages
