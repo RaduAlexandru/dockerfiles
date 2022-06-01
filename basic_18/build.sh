@@ -15,8 +15,9 @@ popd > /dev/null
 docker build\
   --build-arg user=$USER\
   --build-arg uid=$UID\
-  --build-arg home=$HOME\
-  --build-arg workspace=$SCRIPTPATH\
   --build-arg shell=$SHELL\
   -t $1 \
   -f Dockerfile .
+
+# --build-arg home=$HOME\
+# --build-arg workspace=$SCRIPTPATH\

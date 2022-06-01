@@ -11,8 +11,8 @@ FROM ubuntu:bionic
 # Arguments
 ARG user
 ARG uid
-ARG home
-ARG workspace
+# ARG home
+# ARG workspace
 ARG shell
 
 # switch to non interactive https://github.com/phusion/baseimage-docker/issues/319
@@ -104,8 +104,11 @@ RUN sudo apt-get update &&  sudo DEBIAN_FRONTEND="noninteractive" apt-get instal
 
 
 
+
+
 # #default command to run when running the container
-ENTRYPOINT ./setup.sh &&  /bin/bash
+# ENTRYPOINT ./setup.sh &&  /bin/bash
+ENTRYPOINT /bin/bash
 
 
 
@@ -127,7 +130,7 @@ EXPOSE 6006
 EXPOSE 8888
 
 # Mount the user's home directory
-VOLUME "${home}"
+# VOLUME "${home}"
 
 #Intel vtune and  MKL
 VOLUME "/opt/intel"
@@ -149,13 +152,22 @@ RUN usermod -a -G dialout ${user} && usermod -a -G video ${user} && usermod -a -
 # USER ${user}
 # USER root
 
+
+#make a new home directory 
+RUN mkdir -p /home/${user}
+RUN sudo chown ${user} /home/${user}
+ENV HOME=/home/${user}
+
 # Switch to user
 USER "${user}"
 # This is required for sharing Xauthority
 ENV QT_X11_NO_MITSHM=1
-ENV CATKIN_TOPLEVEL_WS="${workspace}/devel"
+# ENV CATKIN_TOPLEVEL_WS="${workspace}/devel"
 # Switch to the workspace
-WORKDIR ${workspace}
+# WORKDIR ${workspace}
+WORKDIR /home/${user}
+
+
 
 # switch to interactive
 ENV DEBIAN_FRONTEND teletype

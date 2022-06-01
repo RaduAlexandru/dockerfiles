@@ -31,10 +31,12 @@ docker run\
   -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
   -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \
   --group-add $(getent group audio | cut -d: -f3) \
-  -v "$HOME:$HOME:rw"\
   -v "/media/rosu/Data:/media/rosu/Data:rw"\
   -v "/media/rosu/HDD:/media/rosu/HDD:rw"\
   -v "/media/rosu/INTENSO:/media/rosu/INTENSO:rw"\
   -v "/tmp/.X11-unix:/tmp/.X11-unix:rw"\
   -v "/opt/intel:/opt/intel:rw"\
   -it $1
+
+
+# -v "$HOME:$HOME:rw"\
