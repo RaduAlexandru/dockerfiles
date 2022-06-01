@@ -248,7 +248,7 @@ RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable && sudo apt-get upda
 #python3 libs
 RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
 RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq tensorboard && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq tensorboard torchdiffeq && sh "./cleanup.sh"
 #Tensorflow and other stuff that I don't need at the moment
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
@@ -508,7 +508,10 @@ RUN sudo apt install -y cmake
 #other pakcages
 RUN sudo apt-get install -y build-essential git python3-dev python3-pip libopenexr-dev libxi-dev libglfw3-dev libglew-dev libomp-dev libxinerama-dev libxcursor-dev
 
-
+#rawtherapee for processing raw images for phenorob
+RUN sudo add-apt-repository -y ppa:dhor/myway
+RUN sudo apt update
+RUN sudo apt install -y rawtherapee
 
 
 
