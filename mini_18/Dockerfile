@@ -22,6 +22,10 @@ ENV DEBIAN_FRONTEND noninteractive
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
+#solves an issue with some weird nvidia repo error https://github.com/NVIDIA/nvidia-docker/issues/1632
+RUN rm /etc/apt/sources.list.d/cuda.list
+RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
 RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp && sh "./cleanup.sh"
 
