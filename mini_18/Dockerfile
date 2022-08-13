@@ -182,7 +182,7 @@ RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
 RUN pip3 install numpy pyyaml mkl mkl-include typing dataclasses typing-extensions
 WORKDIR /opt/pytorch
-RUN git checkout tags/v1.9.0
+RUN git checkout tags/v1.12.1
 RUN git submodule sync
 RUN git submodule update --init --recursive
 # RUN mkdir /opt/pytorch_installed
@@ -201,7 +201,7 @@ WORKDIR /
 RUN git clone --recursive https://github.com/pytorch/vision /opt/vision
 # RUN pip3 install typing-extensions
 WORKDIR /opt/vision
-RUN git checkout tags/v0.10.0 && \
+RUN git checkout tags/v0.13.1 && \
 git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
