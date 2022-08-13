@@ -78,14 +78,16 @@ RUN sudo locale-gen
 # RUN rm cmake-3.14.0.tar.gz && rm -rf cmake-3.14.0
 
 
-#python3
+#python at least 3.7 is needed to compile pytorch 
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools && sh "./cleanup.sh"
-
+RUN sudo add-apt-repository ppa:deadsnakes/ppa
+RUN sudo apt install -y python3.7
 #switch to python3  https://linuxconfig.org/how-to-change-from-default-to-alternative-python-version-on-debian-linux
 #this is needed so that catkin uses python3 and therefore pybind uses python3 which is the only one that can use spconv..
-RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools && sh "./cleanup.sh"
+
 
 
 
