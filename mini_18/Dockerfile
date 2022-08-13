@@ -30,7 +30,7 @@ RUN chmod +x ./cleanup.sh
 #RUN sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
-RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp && sh "./cleanup.sh"
+RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp pkg-config && sh "./cleanup.sh"
 
 #Make SSH keys work inside the container
 RUN  echo "    IdentityFile ~/.ssh/id_rsa" >> /etc/ssh/ssh_config
@@ -78,25 +78,64 @@ RUN sudo locale-gen
 # RUN rm cmake-3.14.0.tar.gz && rm -rf cmake-3.14.0
 
 
-#python at least 3.7 is needed to compile pytorch 
+#copy the cleanup script
 COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
+
+#things for Instant Neural Primitives https://github.com/NVlabs/instant-ngp----------------------------------------------------------------
+#also needed cmake 3.13 and above for pytorch
+#CMAKE above 3.19  https://askubuntu.com/a/8652941
+# https://gitlab.kitware.com/cmake/cmake/-/issues/22245
+RUN sudo apt-get update
+RUN sudo apt-get install software-properties-common wget
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+RUN sudo apt update
+RUN sudo apt install -y cmake
+
+
+#python at least 3.7 is needed to compile pytorch 
 RUN sudo add-apt-repository ppa:deadsnakes/ppa
-RUN sudo apt install -y python3.7
+RUN sudo apt install -y python3.8
 #switch to python3  https://linuxconfig.org/how-to-change-from-default-to-alternative-python-version-on-debian-linux
 #this is needed so that catkin uses python3 and therefore pybind uses python3 which is the only one that can use spconv..
-RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.7 2
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools && sh "./cleanup.sh"
+RUN sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 2
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3.8-dev && sh "./cleanup.sh"
+#install pip 
+# https://stackoverflow.com/a/56140616
+RUN sudo apt-get update && sudo apt install -y python3-pip
+RUN python3.8 -m pip install pip
+RUN sudo python3.8 -m pip install -U pip
+#install packages
+RUN sudo python3.8 -m pip install setuptools
+#CANNOT DO THIS HERE because that will change python3 to be python3.8 and python3.8 cannot run add-apt-repository because it's missing apt-kg
+# RUN sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2 
+
+#now that python3 is actually python3.8 we need to also instal somehow python3-apt. We link to the ine from python3 the default version
+#https://stackoverflow.com/a/36232975
+# WORKDIR /usr/lib/python3/dist-packages
+# RUN cp apt_pkg.cpython-36m-x86_64-linux-gnu.so apt_pkg.so
+#more things that are missing from python3.8 https://stackoverflow.com/a/60352723
+# RUN sudo python3.8 -m pip install pgi
+# RUN sudo python3.8 -m pip install --ignore-installed PyGObject
 
 
 
+
+
+
+#Halide requires also Eigen but there is an issue when compiling cuda10 and eigen, solution is to upgrade eigen https://github.com/tensorflow/tensorflow/issues/15389
+# COPY data/libeigen3-dev_3.3.7-3_all.deb ./
+# RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
+# RUN sudo dpkg -i libeigen3-dev_3.3.7-3_all.deb
+#update to eigen 3.4 https://ubuntu.pkgs.org/22.04/ubuntu-universe-amd64/libeigen3-dev_3.4.0-2ubuntu2_all.deb.html
+COPY data/libeigen3-dev_3.4.0-2ubuntu2_all.deb ./
+RUN sudo dpkg -i libeigen3-dev_3.4.0-2ubuntu2_all.deb
 
 
 
 
 #ROS and install also catkin for python3
-COPY cleanup.sh ./
-RUN chmod +x ./cleanup.sh
 RUN sudo add-apt-repository main
 RUN sudo add-apt-repository universe
 RUN sudo add-apt-repository multiverse
@@ -107,8 +146,8 @@ RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) 
 RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-desktop-full && sh "./cleanup.sh"
 RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ros-melodic-nmea-msgs && sh "./cleanup.sh"
-RUN sudo python3 -m pip install catkin-tools rosdep
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-wstool && sh "./cleanup.sh"
+RUN sudo python3.8 -m pip install catkin-tools rosdep
+RUN sudo python3.8 -m pip install wstool
 RUN sudo rosdep init
 RUN rosdep update
 # RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python-catkin-tools && sh "./cleanup.sh"
@@ -155,10 +194,7 @@ RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends libgt
 #clang and llvm as a depenency of halide
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-8 llvm-8-dev libclang-8-dev && sh "./cleanup.sh"
 
-#Halide requires also Eigen but there is an issue when compiling cuda10 and eigen, solution is to upgrade eigen https://github.com/tensorflow/tensorflow/issues/15389
-COPY data/libeigen3-dev_3.3.7-3_all.deb ./
-# RUN wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/e/eigen3/libeigen3-dev_3.3.7-1_all.deb
-RUN sudo dpkg -i libeigen3-dev_3.3.7-3_all.deb
+
 
 #ranger
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends ranger caca-utils highlight atool w3m poppler-utils mediainfo && "./cleanup.sh"
@@ -181,8 +217,7 @@ WORKDIR /
 # RUN git clone --verbose --recursive git@github.com:pytorch/pytorch.git /opt/pytorch
 #RUN git clone --verbose --recursive https://github.com/pytorch/pytorch  /opt/pytorch
 RUN git clone --verbose https://github.com/pytorch/pytorch  /opt/pytorch
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pip python3-setuptools && sh "./cleanup.sh"
-RUN pip3 install numpy pyyaml mkl mkl-include typing dataclasses typing-extensions
+RUN sudo python3.8 -m pip install numpy pyyaml mkl mkl-include typing dataclasses typing-extensions
 WORKDIR /opt/pytorch
 RUN git checkout tags/v1.12.1
 RUN git submodule sync
@@ -195,7 +230,7 @@ ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
 #RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
@@ -208,7 +243,7 @@ git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
 # RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
@@ -238,7 +273,7 @@ WORKDIR /opt/torch_scatter
 RUN git checkout tags/2.0.4 && \
 git submodule sync && \
 git submodule update --init --recursive && \
-FORCE_CUDA=1 python3 setup.py install
+FORCE_CUDA=1 python3.8 setup.py install
 WORKDIR /
 
 
@@ -255,15 +290,14 @@ RUN sudo add-apt-repository -y ppa:thomas-schiex/blender && sudo apt-get update 
 RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable && sudo apt-get update &&  sudo apt-get install -y kdenlive dbus-x11
 
 #python3 libs
-RUN sudo apt-get update && sudo apt-get -y install python3-pip python3-tk python3-pyqt5 python3-crypto python3-gnupg python3-dbg && sh "./cleanup.sh"
-RUN sudo python3 -m pip install --upgrade pip
-RUN sudo apt-get update && sudo python3 -m pip install ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq tensorboard torchdiffeq && sh "./cleanup.sh"
+# RUN sudo apt-get update && sudo apt-get -y install python3.8-pip python3.8-tk python3.8-pyqt5 python3.8-crypto python3.8-gnupg python3.8-dbg && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3.8 -m pip install tk pyqt5 crypto gnupg dbg ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq tensorboard torchdiffeq && sh "./cleanup.sh"
 #Tensorflow and other stuff that I don't need at the moment
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
-RUN sudo python3 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh"
+RUN sudo python3.8 -m pip install --upgrade setuptools setuptools-git  && sh "./cleanup.sh"
 #we need to downgrade it because tensorboard has an issue with newer versions https://exerror.com/attributeerror-module-setuptools-_distutils-has-no-attribute-version/
-RUN python3 -m pip install setuptools==59.5.0 
+RUN python3.8 -m pip install setuptools==59.5.0 
 
 #python2.7 libs
 RUN sudo apt-get update && sudo apt-get install -y python-pip python-tk dvipng  python-tk   && sh "./cleanup.sh"
@@ -418,16 +452,16 @@ RUN cmake .. && make -j3 && sudo make install
 WORKDIR /
 
 #colmap  https://colmap.github.io/install.html
-RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev && \
-git clone https://github.com/colmap/colmap.git /opt/colmap
-WORKDIR /opt/colmap
-RUN git checkout tags/3.6 && \
-git submodule sync && \
-git submodule update --init --recursive
-RUN git checkout dev && mkdir build
-WORKDIR build
-RUN cmake .. && make -j 3 && sudo make install
-WORKDIR /
+#RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev libmetis-dev && \
+#git clone https://github.com/colmap/colmap.git /opt/colmap
+#WORKDIR /opt/colmap
+#RUN git checkout tags/3.6 && \
+#git submodule sync && \
+#git submodule update --init --recursive
+#RUN git checkout dev && mkdir build
+#WORKDIR build
+#RUN cmake .. && make -j 3 && sudo make install
+#WORKDIR /
 
 
 # ####----ALICEVISON-------
@@ -511,15 +545,7 @@ RUN sudo apt install -y audacity
 RUN sudo apt-get install -y qt4-qmake libqt4-dev
 
 
-#things for Instant Neural Primitives https://github.com/NVlabs/instant-ngp----------------------------------------------------------------
-#CMAKE above 3.19  https://askubuntu.com/a/8652941
-# https://gitlab.kitware.com/cmake/cmake/-/issues/22245
-RUN sudo apt-get update
-RUN sudo apt-get install software-properties-common wget
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-RUN sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
-RUN sudo apt update
-RUN sudo apt install -y cmake
+
 #other pakcages
 RUN sudo apt-get install -y build-essential git python3-dev python3-pip libopenexr-dev libxi-dev libglfw3-dev libglew-dev libomp-dev libxinerama-dev libxcursor-dev
 
@@ -550,6 +576,12 @@ RUN sudo apt install -y rawtherapee
 # ###   BUG FIXES   ################################3
 # # need to downgrade fontconfig from 2.13 to 2.12 because with 2.13 I get a linking error of /opt/conda/envs/pt/lib/libfontconfig.so.1: undefined reference to `FT_Done_MM_Var'
 # RUN conda install -n pt fontconfig=2.12 && conda clean -ya
+
+
+
+#THIS HAS TO BE THE LAST thing after we instal things 
+#if you ever need to do add-reposityo you need you change alternative back to python3.6
+RUN sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2 
 
 
 
