@@ -1,7 +1,7 @@
 # FROM ubuntu:bionic
 
 # FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
-FROM nvidia/cuda:11.2.2-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu18.04
 
 ENV NVIDIA_VISIBLE_DEVICES \
     ${NVIDIA_VISIBLE_DEVICES:-all}
@@ -23,8 +23,11 @@ COPY cleanup.sh ./
 RUN chmod +x ./cleanup.sh
 
 #solves an issue with some weird nvidia repo error https://github.com/NVIDIA/nvidia-docker/issues/1632
-RUN rm /etc/apt/sources.list.d/cuda.list
-RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+#RUN rm /etc/apt/sources.list.d/cuda.list
+#RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+#solve another issue with cuda repos https://forums.developer.nvidia.com/t/invalid-public-key-for-cuda-apt-repository/212901/13
+#RUN sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
+#RUN sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
 
 # Basic Utilities (dirmngr and gpg-agent is needed so that apt-get adv works)
 RUN apt-get -y update && apt-get install -y --no-install-recommends sudo ssh tmux git meld cmake cmake-curses-gui htop vim iputils-ping apt-utils apt-transport-https software-properties-common wget build-essential gdb valgrind silversearcher-ag curl dirmngr gpg-agent checkinstall locate baobab ninja-build libncurses5-dev gimp && sh "./cleanup.sh"
@@ -165,7 +168,7 @@ RUN sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bi
 # RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-$CUDA_PKG_VERSION cuda-visual-tools-$CUDA_PKG_VERSION && sh "./cleanup.sh"
 # RUN sudo apt-cache search cuda-command-line-tool
 # RUN sudo apt-cache search cuda-visual-tools
-RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-11-1 cuda-visual-tools-11-1 && sh "./cleanup.sh"
+#RUN sudo apt-get update && apt-get install -y --no-install-recommends cuda-command-line-tools-11-1 cuda-visual-tools-11-1 && sh "./cleanup.sh"
 
 #pytorch
 # RUN conda config --env --add channels pytorch
@@ -190,7 +193,7 @@ ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX" python3 setup.py install
 #RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
@@ -203,7 +206,7 @@ git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX" python3 setup.py install
 # RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
@@ -225,7 +228,7 @@ WORKDIR /
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture. It needs the cuda_arch list in order to find nvidia drivers and build the gpu part of the torch-scatter https://github.com/rusty1s/pytorch_scatter/pull/79
 #FORCE_CUDA may be needed for cases like this when the cuda runtime is not exposed during docker build but is actually needed https://github.com/facebookresearch/maskrcnn-benchmark/issues/167
 ARG CUDA_HOME="/usr/local/cuda"
-ARG TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 8.0+PTX"
+ARG TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX"
 ARG TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ARG CPATH="/usr/local/cuda/include"
 RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
@@ -404,6 +407,9 @@ RUN sudo apt-get install -y gphoto2
 RUN sudo apt-get purge -y libceres-dev && \
 git clone --recursive https://github.com/ceres-solver/ceres-solver.git /opt/ceres
 WORKDIR /opt/ceres
+RUN git checkout tags/2.0.0 && \
+git submodule sync && \
+git submodule update --init --recursive
 RUN mkdir build
 WORKDIR build
 RUN cmake .. && make -j3 && sudo make install
@@ -413,6 +419,9 @@ WORKDIR /
 RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev && \
 git clone https://github.com/colmap/colmap.git /opt/colmap
 WORKDIR /opt/colmap
+RUN git checkout tags/3.6 && \
+git submodule sync && \
+git submodule update --init --recursive
 RUN git checkout dev && mkdir build
 WORKDIR build
 RUN cmake .. && make -j 3 && sudo make install
@@ -516,6 +525,11 @@ RUN sudo apt-get install -y build-essential git python3-dev python3-pip libopene
 RUN sudo add-apt-repository -y ppa:dhor/myway
 RUN sudo apt update
 RUN sudo apt install -y rawtherapee
+
+
+#nvidia compute for profiling kernels #you cna then start it from /opt/nvidia/nsight-compute/ncu-ui
+#or you cna run /opt/nvidia/nsight-compute/2022.1.0/ncu --target-processes all <my_executabel>
+# RUN sudo apt-get install -y nsight-compute-2022.1.0 
 
 
 
