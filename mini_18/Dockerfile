@@ -193,7 +193,7 @@ ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3 setup.py install
 #RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
@@ -206,7 +206,7 @@ git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX" python3 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3 setup.py install
 # RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
@@ -228,7 +228,7 @@ WORKDIR /
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture. It needs the cuda_arch list in order to find nvidia drivers and build the gpu part of the torch-scatter https://github.com/rusty1s/pytorch_scatter/pull/79
 #FORCE_CUDA may be needed for cases like this when the cuda runtime is not exposed during docker build but is actually needed https://github.com/facebookresearch/maskrcnn-benchmark/issues/167
 ARG CUDA_HOME="/usr/local/cuda"
-ARG TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6;8.7+PTX"
+ARG TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX"
 ARG TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ARG CPATH="/usr/local/cuda/include"
 RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
