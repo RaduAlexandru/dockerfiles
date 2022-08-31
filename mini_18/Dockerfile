@@ -451,17 +451,17 @@ WORKDIR build
 RUN cmake .. && make -j3 && sudo make install
 WORKDIR /
 
-#colmap  https://colmap.github.io/install.html
-#RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev libmetis-dev && \
-#git clone https://github.com/colmap/colmap.git /opt/colmap
-#WORKDIR /opt/colmap
-#RUN git checkout tags/3.6 && \
-#git submodule sync && \
-#git submodule update --init --recursive
-#RUN git checkout dev && mkdir build
-#WORKDIR build
-#RUN cmake .. && make -j 3 && sudo make install
-#WORKDIR /
+# colmap  https://colmap.github.io/install.html
+RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev libmetis-dev && \
+git clone https://github.com/colmap/colmap.git /opt/colmap
+WORKDIR /opt/colmap
+RUN git checkout tags/3.6 && \
+git submodule sync && \
+git submodule update --init --recursive
+RUN mkdir build
+WORKDIR build
+RUN cmake .. && make -j 3 && sudo make install
+WORKDIR /
 
 
 # ####----ALICEVISON-------
