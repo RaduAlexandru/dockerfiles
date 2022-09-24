@@ -452,15 +452,28 @@ RUN cmake .. && make -j3 && sudo make install
 WORKDIR /
 
 # colmap  https://colmap.github.io/install.html
-RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev libmetis-dev && \
-git clone https://github.com/colmap/colmap.git /opt/colmap
-WORKDIR /opt/colmap
-RUN git checkout tags/3.6 && \
+# RUN sudo apt-get install -y libboost-program-options-dev libboost-filesystem-dev libboost-graph-dev libboost-regex-dev libboost-system-dev libboost-test-dev libsuitesparse-dev libfreeimage-dev libgoogle-glog-dev libgflags-dev  libglew-dev qtbase5-dev libqt5opengl5-dev libcgal-dev libcgal-qt5-dev libmetis-dev && \
+# git clone https://github.com/colmap/colmap.git /opt/colmap
+# WORKDIR /opt/colmap
+# RUN git checkout tags/3.6 && \
+# git submodule sync && \
+# git submodule update --init --recursive
+# RUN mkdir build
+# WORKDIR build
+# RUN cmake .. && make -j 3 && sudo make install
+# WORKDIR /
+
+
+#apex
+RUN git clone --recursive https://github.com/NVIDIA/apex.git /opt/apex
+WORKDIR /opt/apex
+RUN git checkout 1d7711100bb58dc761a2fad89f30d41239450f58 && \
 git submodule sync && \
 git submodule update --init --recursive
-RUN mkdir build
-WORKDIR build
-RUN cmake .. && make -j 3 && sudo make install
+# RUN mkdir build
+# WORKDIR build
+# RUN cmake .. && make -j3 && sudo make install
+RUN python3.8 -m pip install -v --disable-pip-version-check --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 WORKDIR /
 
 
