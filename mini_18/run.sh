@@ -14,12 +14,12 @@ popd > /dev/null
 set -e
 
 #the shm-size had to be increased to avoid bus error(core dumped) when using phoxi controller https://github.com/pytorch/pytorch/issues/2244#issuecomment-318864552
+# --publish-all=true\ #published exposed port to random ports but we don't want the random part
 
 # Run the container with shared X11
 docker run\
   --shm-size 2G\
   --gpus all\
-  --publish-all=true\
   --net=host\
   --privileged\
   -e SHELL\

@@ -230,7 +230,7 @@ ENV BUILD_CAFFE2_OPS OFF
 ENV BUILD_CAFFE2_MOBILE OFF
 ENV MAX_JOBS 4
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="5.2;5.3;6.0;6.1;6.2;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
 #RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #need to make it own by myself and not by root because otherwise when we run python it will not access it
@@ -243,7 +243,7 @@ git submodule sync && \
 git submodule update --init --recursive
 # python3 setup.py install
 ######The 8.0 is for ampere but we leave up until 7.5 because I am using the 2060
-RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
+RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 TORCH_CUDA_ARCH_LIST="5.2;5.3;6.0;6.1;6.2;7.0;7.5;8.0;8.6+PTX" python3.8 setup.py install
 # RUN MAX_JOBS=8 USE_NINJA=1 BUILD_TEST=0 BUILD_JNI=0 USE_CUDNN=1 TORCH_CUDA_ARCH_LIST="7.5" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" python3 setup.py install
 WORKDIR /
 # #torch c++ from https://github.com/pytorch/pytorch/blob/master/docs/libtorch.rst
@@ -265,7 +265,7 @@ WORKDIR /
 #torch scatter in order to have scatter_max which is useful for a pointnet architecture. It needs the cuda_arch list in order to find nvidia drivers and build the gpu part of the torch-scatter https://github.com/rusty1s/pytorch_scatter/pull/79
 #FORCE_CUDA may be needed for cases like this when the cuda runtime is not exposed during docker build but is actually needed https://github.com/facebookresearch/maskrcnn-benchmark/issues/167
 ARG CUDA_HOME="/usr/local/cuda"
-ARG TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6+PTX"
+ARG TORCH_CUDA_ARCH_LIST="5.2;5.3;6.0;6.1;6.2;7.0;7.5;8.0;8.6+PTX"
 ARG TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ARG CPATH="/usr/local/cuda/include"
 RUN git clone --recursive https://github.com/rusty1s/pytorch_scatter /opt/torch_scatter
@@ -291,7 +291,7 @@ RUN sudo add-apt-repository -y ppa:kdenlive/kdenlive-stable && sudo apt-get upda
 
 #python3 libs
 # RUN sudo apt-get update && sudo apt-get -y install python3.8-pip python3.8-tk python3.8-pyqt5 python3.8-crypto python3.8-gnupg python3.8-dbg && sh "./cleanup.sh"
-RUN sudo apt-get update && sudo python3.8 -m pip install tk pyqt5 crypto gnupg dbg ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils sklearn scikit-image twine natsort termcolor piq tensorboard torchdiffeq && sh "./cleanup.sh"
+RUN sudo apt-get update && sudo python3.8 -m pip install tk pyqt5 crypto gnupg dbg ipdb numpy jupyter h5py scipy ipython pillow matplotlib opencv-python wheel trollius rospkg asyncio netifaces visdom torchnet sympy tqdm dlutils scikit-learn scikit-image twine natsort termcolor piq tensorboard==2.11.0 torchdiffeq && sh "./cleanup.sh"
 #Tensorflow and other stuff that I don't need at the moment
 # RUN sudo apt-get update && sudo python3 -m pip install tensorflow==1.15 cython pycocotools && sh "./cleanup.sh"
 #needed for tensorboard which required a higher version of setuptools
@@ -569,8 +569,10 @@ RUN sudo apt install -y rawtherapee
 
 
 #nvidia compute for profiling kernels #you cna then start it from /opt/nvidia/nsight-compute/ncu-ui
-#or you cna run /opt/nvidia/nsight-compute/2022.1.0/ncu --target-processes all <my_executabel>
-# RUN sudo apt-get install -y nsight-compute-2022.1.0 
+#or you can run:  sudo /opt/nvidia/nsight-compute/2022.1.0/ncu --target-processes all --set full --export profile.prof <my_executabel>
+#and then start: /opt/nvidia/nsight-compute/2022.1.0/ncu-ui ./profile.prof
+#for more details: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html#command-line-options
+RUN sudo apt-get install -y nsight-compute-2022.1.0 
 
 
 
